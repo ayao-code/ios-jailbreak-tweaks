@@ -15,7 +15,7 @@
 		<key>isController</key>
 		<true/>
 		<key>label</key>
-		<string>启动语音ai助手控制</string>
+		<string>AiPowerButton</string>
 	</dict>
 </dict>
 </plist>

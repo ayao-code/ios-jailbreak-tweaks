@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>zh_CN</string>
 	<key>CFBundleDisplayName</key>
-	<string>启动语音ai助手控制</string>
+	<string>AiPowerButton</string>
 	<key>CFBundleExecutable</key>
 	<string>DoubaoPowerButtonPrefs</string>
 	<key>CFBundleIdentifier</key>

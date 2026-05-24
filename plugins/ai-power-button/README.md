@@ -1,6 +1,6 @@
-# 启动语音 AI 助手控制
+# AiPowerButton
 
-适用于 iOS 16 Dopamine rootless 越狱环境的侧边键快捷插件。安装后可以在系统设置中选择长按关机键启动豆包或 DeepSeek 语音助手。
+适用于 iOS 16 Dopamine rootless 越狱环境的侧边键快捷插件。安装后可以在系统设置的 `AiPowerButton` 中选择长按关机键启动豆包或 DeepSeek 语音助手。
 
 ## 功能
 
@@ -23,10 +23,12 @@
 
 下载 `com.ayao.doubaopowerbutton_1.0.0_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
 
+> 为了兼容旧版本升级，底层 package id 仍保留为 `com.ayao.doubaopowerbutton`；插件对外名称和设置显示名称为 `AiPowerButton`。
+
 ## 使用方法
 
 1. 打开系统设置。
-2. 进入「启动语音ai助手控制」。
+2. 进入 `AiPowerButton`。
 3. 开启插件。
 4. 在「启动应用」中选择「豆包」或「DeepSeek」。
 5. 单独长按关机键触发所选语音助手。

@@ -6,11 +6,11 @@
 
 ## 插件列表
 
-### 启动语音 AI 助手控制
+### AiPowerButton
 
-路径：[`plugins/doubao-power-button`](plugins/doubao-power-button)
+路径：[`plugins/ai-power-button`](plugins/ai-power-button)
 
-适用于 iOS 16 Dopamine rootless 越狱环境。安装后可以在系统设置中选择长按关机键启动豆包或 DeepSeek 语音助手。
+适用于 iOS 16 Dopamine rootless 越狱环境。安装后可以在系统设置中通过 `AiPowerButton` 配置长按关机键启动豆包或 DeepSeek 语音助手。
 
 - 豆包模式：长按关机键启动豆包语音输入，发送由用户在豆包内手动完成。
 - DeepSeek 模式：长按关机键开始语音输入，松开关机键后自动发送。
@@ -20,7 +20,7 @@
 
 ```text
 plugins/
-├── doubao-power-button/
+├── ai-power-button/
 │   ├── README.md
 │   ├── Makefile
 │   ├── control
@@ -55,7 +55,7 @@ plugins/
 进入具体插件目录后构建：
 
 ```sh
-cd plugins/doubao-power-button
+cd plugins/ai-power-button
 THEOS=/path/to/theos FINALPACKAGE=1 make clean package
 ```
 
@@ -66,7 +66,7 @@ THEOS=/path/to/theos FINALPACKAGE=1 make clean package
 多个插件共用一个仓库时，建议 tag 使用插件名前缀：
 
 ```text
-doubao-power-button-v1.0.0
+ai-power-button-v1.0.0
 example-tweak-v0.1.0
 ```
 
