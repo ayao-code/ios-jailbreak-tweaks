@@ -21,7 +21,7 @@
 
 ## 安装
 
-下载 `ayao.aipowerbutton_1.0.0_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
+下载本目录下的 `ayao.aipowerbutton_1.0.0_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
 
 > 如果设备上已经安装旧包 `com.ayao.doubaopowerbutton`，请先卸载旧包后再安装新版；新版 package id 为 `ayao.aipowerbutton`。
 

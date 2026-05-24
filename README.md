@@ -26,12 +26,14 @@ plugins/
 │   ├── control
 │   ├── Tweak.xm
 │   ├── Preferences/
+│   ├── ayao.aipowerbutton_1.0.0_iphoneos-arm64.deb
 │   └── ...
 └── another-plugin/
     ├── README.md
     ├── Makefile
     ├── control
     ├── Tweak.xm
+    ├── another-plugin_0.1.0_iphoneos-arm64.deb
     └── ...
 ```
 
@@ -46,9 +48,10 @@ plugins/
    - `Makefile`：Theos 构建配置。
    - `control`：Debian 包信息，描述尽量使用中文写清楚。
    - `Tweak.xm` 或对应源码文件。
+   - 当前正式版 `.deb`：放在该插件目录下，文件名保持包名、版本和架构清晰可识别。
 4. 如果插件有设置面板，放在插件自己的 `Preferences/` 目录内。
 5. 不同插件之间不要共用源码文件，避免发布和调试时互相影响。
-6. 构建产物不要提交到仓库，`.deb` 包通过 GitHub Release 发布。
+6. Theos 自动生成的 `packages/`、`.theos/` 等中间构建目录不要提交；需要发布的 `.deb` 复制到对应插件目录后再提交。
 
 ## 构建方式
 
@@ -59,7 +62,7 @@ cd plugins/ai-power-button
 THEOS=/path/to/theos FINALPACKAGE=1 make clean package
 ```
 
-构建完成后的 `.deb` 文件会在该插件目录的 `packages/` 下生成。
+构建完成后的 `.deb` 文件会在该插件目录的 `packages/` 下生成。确认可发布后，把最终 `.deb` 复制到该插件目录根部，例如 `plugins/ai-power-button/ayao.aipowerbutton_1.0.0_iphoneos-arm64.deb`。
 
 ## 发版建议
 
