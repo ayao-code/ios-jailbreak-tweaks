@@ -1,4 +1,4 @@
-Package: com.ayao.doubaopowerbutton
+Package: ayao.aipowerbutton
 Name: AiPowerButton
 Version: 1.0.0
 Architecture: iphoneos-arm64
@@ -7,4 +7,5 @@ Maintainer: ayao
 Author: ayao
 Section: Tweaks
 Depends: mobilesubstrate, preferenceloader
-Replaces: com.yaofugen.doubaopowerbutton
+Conflicts: com.ayao.doubaopowerbutton, com.yaofugen.doubaopowerbutton
+Replaces: com.ayao.doubaopowerbutton, com.yaofugen.doubaopowerbutton

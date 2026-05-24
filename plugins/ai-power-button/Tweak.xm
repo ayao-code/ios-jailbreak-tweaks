@@ -22,16 +22,16 @@ static NSString *gProvider = nil;
 
 static const NSTimeInterval kProtectSeconds = 8.0;
 static const NSTimeInterval kDebounceSeconds = 4.0;
-static NSString * const kPrefsDomain = @"com.ayao.doubaopowerbutton";
-static NSString * const kPrefsChangedNotification = @"com.ayao.doubaopowerbutton/preferences.changed";
+static NSString * const kPrefsDomain = @"ayao.aipowerbutton";
+static NSString * const kPrefsChangedNotification = @"ayao.aipowerbutton/preferences.changed";
 static NSString * const kDoubaoBundleID = @"com.bot.doubao";
 static NSString * const kDoubaoAudioInputIntentIdentifier = @"FlowOpenMainBotAudioInputHandsfreeAppIntent";
 static NSString * const kDoubaoAudioInputIntentMangledTypeName = @"5Grace43FlowOpenMainBotAudioInputHandsfreeAppIntentV";
 static NSString * const kDeepSeekBundleID = @"com.deepseek.chat";
 static NSString * const kProviderDoubao = @"doubao";
 static NSString * const kProviderDeepSeek = @"deepseek";
-static NSString * const kDeepSeekStartNotification = @"com.ayao.doubaopowerbutton.deepseek.start";
-static NSString * const kDeepSeekStopSendNotification = @"com.ayao.doubaopowerbutton.deepseek.stopSend";
+static NSString * const kDeepSeekStartNotification = @"ayao.aipowerbutton.deepseek.start";
+static NSString * const kDeepSeekStopSendNotification = @"ayao.aipowerbutton.deepseek.stopSend";
 
 static NSTimeInterval AYPBNow(void) {
     return [[NSDate date] timeIntervalSince1970];

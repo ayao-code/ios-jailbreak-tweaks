@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>DoubaoPowerButtonPrefs</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.ayao.doubaopowerbutton.prefs</string>
+	<string>ayao.aipowerbutton.prefs</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

@@ -16,13 +16,13 @@
 			<key>default</key>
 			<true/>
 			<key>defaults</key>
-			<string>com.ayao.doubaopowerbutton</string>
+			<string>ayao.aipowerbutton</string>
 			<key>key</key>
 			<string>enabled</string>
 			<key>label</key>
 			<string>启用插件</string>
 			<key>PostNotification</key>
-			<string>com.ayao.doubaopowerbutton/preferences.changed</string>
+			<string>ayao.aipowerbutton/preferences.changed</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -32,13 +32,13 @@
 			<key>default</key>
 			<string>doubao</string>
 			<key>defaults</key>
-			<string>com.ayao.doubaopowerbutton</string>
+			<string>ayao.aipowerbutton</string>
 			<key>key</key>
 			<string>provider</string>
 			<key>label</key>
 			<string>启动应用</string>
 			<key>PostNotification</key>
-			<string>com.ayao.doubaopowerbutton/preferences.changed</string>
+			<string>ayao.aipowerbutton/preferences.changed</string>
 			<key>validTitles</key>
 			<array>
 				<string>豆包</string>

@@ -14,9 +14,9 @@ static NSMutableArray *gDSGestureArray = nil;
 static BOOL gDSRecording = NO;
 static BOOL gDSStarting = NO;
 
-static NSString * const kDSPrefsDomain = @"com.ayao.doubaopowerbutton";
-static NSString * const kDSStartNotification = @"com.ayao.doubaopowerbutton.deepseek.start";
-static NSString * const kDSStopSendNotification = @"com.ayao.doubaopowerbutton.deepseek.stopSend";
+static NSString * const kDSPrefsDomain = @"ayao.aipowerbutton";
+static NSString * const kDSStartNotification = @"ayao.aipowerbutton.deepseek.start";
+static NSString * const kDSStopSendNotification = @"ayao.aipowerbutton.deepseek.stopSend";
 
 static id DSAllocInit(Class cls) {
     if (!cls) {
