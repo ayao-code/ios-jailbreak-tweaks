@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>启动语音ai助手控制</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.ayao.doubaopowerbutton</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>label</key>
+			<string>启用插件</string>
+			<key>PostNotification</key>
+			<string>com.ayao.doubaopowerbutton/preferences.changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>default</key>
+			<string>doubao</string>
+			<key>defaults</key>
+			<string>com.ayao.doubaopowerbutton</string>
+			<key>key</key>
+			<string>provider</string>
+			<key>label</key>
+			<string>启动应用</string>
+			<key>PostNotification</key>
+			<string>com.ayao.doubaopowerbutton/preferences.changed</string>
+			<key>validTitles</key>
+			<array>
+				<string>豆包</string>
+				<string>DeepSeek</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>doubao</string>
+				<string>deepseek</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>选择豆包时，长按关机键启动豆包语音输入；选择 DeepSeek 时，长按开始语音输入、松开后发送；音量键加关机键仍保留系统原始关机操作。</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>启动语音ai助手控制</string>
+</dict>
+</plist>
