@@ -16,6 +16,17 @@
 - DeepSeek 模式：长按关机键开始语音输入，松开关机键后自动发送。
 - 保留系统原始操作：音量键加关机键仍会触发 iOS 原生关机/SOS 界面。
 
+### HideDoubaoPiP
+
+路径：[`plugins/hide-doubao-pip`](plugins/hide-doubao-pip)
+
+适用于 iOS 16 Dopamine rootless 越狱环境。安装后仅隐藏豆包输入法创建的 PiP 悬浮窗，通过透明化窗口并禁用触摸来避免干预正常视频 PiP。
+
+- 只注入 SpringBoard，只处理系统 PiP 窗口。
+- 优先通过豆包输入法 bundle/process 识别目标 PiP。
+- bundle 信息缺失时使用保守的 PiP 视图结构兜底识别。
+- 不包含右侧停靠、缩放或常驻 watchdog。
+
 ## 仓库结构
 
 ```text
@@ -28,6 +39,14 @@ plugins/
 │   ├── Preferences/
 │   ├── ayao.aipowerbutton_1.0.0_iphoneos-arm64.deb
 │   └── ...
+├── hide-doubao-pip/
+│   ├── README.md
+│   ├── Makefile
+│   ├── control
+│   ├── Tweak.xm
+│   ├── HideDoubaoPiP.plist
+│   ├── changelog
+│   └── ayao.hidedoubaopip_0.0.2_iphoneos-arm64.deb
 └── another-plugin/
     ├── README.md
     ├── Makefile
