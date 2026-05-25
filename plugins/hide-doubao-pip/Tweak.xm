@@ -1,10 +1,11 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
+#import <sys/stat.h>
 
-#if HDBP_DEBUG_LOGS
 static FILE *logFile = NULL;
-#endif
+static const NSUInteger kMaxLogSize = 512 * 1024;
+static NSString *const kLogPath = @"/var/mobile/Documents/PiPArrowHide.log";
 static NSMutableDictionary *sExtraAssertionsByPid = nil;
 
 typedef NS_ENUM(NSInteger, DoubaoPiPIdentity) {
@@ -15,9 +16,13 @@ typedef NS_ENUM(NSInteger, DoubaoPiPIdentity) {
 
 static void WriteLog(NSString *format, ...) NS_FORMAT_FUNCTION(1,2);
 static void WriteLog(NSString *format, ...) {
-#if HDBP_DEBUG_LOGS
     if (!logFile) {
-        logFile = fopen("/var/mobile/Documents/PiPArrowHide.log", "a");
+        struct stat st;
+        if (stat(kLogPath.UTF8String, &st) == 0 && (NSUInteger)st.st_size >= kMaxLogSize) {
+            logFile = fopen(kLogPath.UTF8String, "w");
+        } else {
+            logFile = fopen(kLogPath.UTF8String, "a");
+        }
     }
     if (!logFile) return;
     va_list args;
@@ -30,10 +35,6 @@ static void WriteLog(NSString *format, ...) {
     NSString *ts = [fmt stringFromDate:now];
     fprintf(logFile, "[%s] %s\n", ts.UTF8String, msg.UTF8String);
     fflush(logFile);
-    NSLog(@"[HideDoubaoPiP] %@", msg);
-#else
-    (void)format;
-#endif
 }
 
 static BOOL IsDoubaoBundleID(id value) {
@@ -86,6 +87,30 @@ static DoubaoPiPIdentity IdentityFromProcess(id process) {
     return IdentityFromBundleID(SafeKVC(process, @"bundleID"));
 }
 
+static DoubaoPiPIdentity IdentityFromPegasusApp(id pipCtrl) {
+    if (!pipCtrl) return DoubaoPiPIdentityUnknown;
+
+    id adapter = SafeKVC(pipCtrl, @"_adapter");
+    if (!adapter) return DoubaoPiPIdentityUnknown;
+
+    id pegasus = SafeKVC(adapter, @"_pegasusController");
+    if (!pegasus) return DoubaoPiPIdentityUnknown;
+
+    id activeApp = SafeKVC(pegasus, @"_activePictureInPictureApplication");
+    if (!activeApp) return DoubaoPiPIdentityUnknown;
+
+    id bundleID = SafeKVC(activeApp, @"_bundleIdentifier");
+    if (bundleID) {
+        DoubaoPiPIdentity identity = IdentityFromBundleID(bundleID);
+        if (identity != DoubaoPiPIdentityUnknown) {
+            WriteLog(@"[IDENTIFY] Pegasus resolved identity=%ld bundleID=%@", (long)identity, bundleID);
+            return identity;
+        }
+    }
+
+    return DoubaoPiPIdentityUnknown;
+}
+
 static DoubaoPiPIdentity IdentityFromPiPController(id pipCtrl) {
     if (!pipCtrl) return DoubaoPiPIdentityUnknown;
 
@@ -94,17 +119,25 @@ static DoubaoPiPIdentity IdentityFromPiPController(id pipCtrl) {
         @"_bundleIDForAppRecentlyStoppingPIP"
     ];
     for (NSString *key in bundleKeys) {
-        DoubaoPiPIdentity identity = IdentityFromBundleID(SafeKVC(pipCtrl, key));
-        if (identity != DoubaoPiPIdentityUnknown) return identity;
+        id val = SafeKVC(pipCtrl, key);
+        DoubaoPiPIdentity identity = IdentityFromBundleID(val);
+        if (identity != DoubaoPiPIdentityUnknown) {
+            WriteLog(@"[IDENTIFY] SBPIPCtrl resolved identity=%ld via %@ val=%@", (long)identity, key, val);
+            return identity;
+        }
     }
 
     NSArray *processKeys = @[@"_pipProcess", @"_applicationProcess"];
     for (NSString *key in processKeys) {
-        DoubaoPiPIdentity identity = IdentityFromProcess(SafeKVC(pipCtrl, key));
-        if (identity != DoubaoPiPIdentityUnknown) return identity;
+        id proc = SafeKVC(pipCtrl, key);
+        DoubaoPiPIdentity identity = IdentityFromProcess(proc);
+        if (identity != DoubaoPiPIdentityUnknown) {
+            WriteLog(@"[IDENTIFY] SBPIPCtrl resolved identity=%ld via %@", (long)identity, key);
+            return identity;
+        }
     }
 
-    return DoubaoPiPIdentityUnknown;
+    return IdentityFromPegasusApp(pipCtrl);
 }
 
 static BOOL IsDoubaoPiPController(id pipCtrl) {
@@ -181,9 +214,11 @@ static BOOL IsDoubaoPiPWindow(UIWindow *window) {
 
     id pipCtrl = SafeKVC(rvc, @"_pipController");
     DoubaoPiPIdentity identity = IdentityFromPiPController(pipCtrl);
+
     if (identity == DoubaoPiPIdentityDoubao) return YES;
     if (identity == DoubaoPiPIdentityNonDoubao) return NO;
 
+    WriteLog(@"[IDENTIFY] identity unknown, falling back to viewTree");
     return IsLikelyDoubaoPiPWindowByViewTree(window);
 }
 
@@ -362,5 +397,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v8 - PiP internal layout trigger hide");
+    WriteLog(@"[INIT] HideDoubaoPiP v0.0.5");
 }

@@ -6,3 +6,10 @@ plugins/*/packages/
 .DS_Store
 DoubaoVoiceHelper.xm
 DoubaoVoiceHelper.plist
+.ttadk/
+/.claude/
+/.coco/
+/.codex/
+/.mcp.json
+/ai-plugin.json
+/ai-plugin-lock.json

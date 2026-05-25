@@ -1,8 +1,8 @@
 Package: ayao.hidedoubaopip
 Name: HideDoubaoPiP
-Version: 0.0.2
+Version: 0.0.5
 Architecture: iphoneos-arm64
-Description: Hide only Doubao IME PiP floating window while preserving normal video PiP. Changes from early v2: removes broad SBPIPPegasusAdapter matching, uses conservative multi-signal Doubao detection, avoids hidden=YES, adds PiP internal layout triggers, and release builds do not write log files.
+Description: 隐藏豆包输入法画中画悬浮窗，保留正常视频画中画功能。仅对豆包输入法生效，不影响系统及其他应用。
 Maintainer: ayao
 Author: ayao
 Section: Tweaks
