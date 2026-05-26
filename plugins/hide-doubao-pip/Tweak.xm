@@ -205,6 +205,21 @@ static BOOL IsLikelyDoubaoPiPWindowByViewTree(UIWindow *window) {
     return hiddenButtons >= 3 && visibleButtons <= 2;
 }
 
+static BOOL HasMultiplePiPWindows(void) {
+    NSUInteger count = 0;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    NSArray *allWindows = [(id)[UIApplication sharedApplication] performSelector:NSSelectorFromString(@"windows")];
+#pragma clang diagnostic pop
+    for (UIWindow *w in allWindows) {
+        if ([SafeClassName(w) isEqualToString:@"SBPictureInPictureWindow"]) {
+            count++;
+            if (count >= 2) return YES;
+        }
+    }
+    return NO;
+}
+
 static BOOL IsDoubaoPiPWindow(UIWindow *window) {
     if (!window) return NO;
     if (![SafeClassName(window) isEqualToString:@"SBPictureInPictureWindow"]) return NO;
@@ -215,8 +230,22 @@ static BOOL IsDoubaoPiPWindow(UIWindow *window) {
     id pipCtrl = SafeKVC(rvc, @"_pipController");
     DoubaoPiPIdentity identity = IdentityFromPiPController(pipCtrl);
 
-    if (identity == DoubaoPiPIdentityDoubao) return YES;
-    if (identity == DoubaoPiPIdentityNonDoubao) return NO;
+    // When only one PiP window exists, global identity is trustworthy
+    if (!HasMultiplePiPWindows()) {
+        if (identity == DoubaoPiPIdentityDoubao) {
+            WriteLog(@"[IDENTIFY] single-PiP identity=Doubao, hiding");
+            return YES;
+        }
+        if (identity == DoubaoPiPIdentityNonDoubao) {
+            WriteLog(@"[IDENTIFY] single-PiP identity=NonDoubao, keeping");
+            return NO;
+        }
+    } else {
+        // Multiple PiP windows: global identity is unreliable (points to
+        // whichever app activated PiP last), so use per-window view tree
+        WriteLog(@"[IDENTIFY] multi-PiP detected identity=%ld, using viewTree", (long)identity);
+        return IsLikelyDoubaoPiPWindowByViewTree(window);
+    }
 
     WriteLog(@"[IDENTIFY] identity unknown, falling back to viewTree");
     return IsLikelyDoubaoPiPWindowByViewTree(window);
@@ -279,7 +308,51 @@ static void AcquireExtraAssertion(pid_t pid) {
 }
 
 static void HideDoubaoWindow(UIWindow *window, NSString *reason) {
-    if (!window || !IsDoubaoPiPWindow(window)) return;
+    if (!window) return;
+
+    NSString *windowClass = SafeClassName(window);
+    BOOL isPiPWindow = [windowClass isEqualToString:@"SBPictureInPictureWindow"];
+    WriteLog(@"[HIDE-CALL] reason=%@ class=%@ isPiP=%d alpha=%.2f userInteraction=%d",
+             reason, windowClass, isPiPWindow, window.alpha, window.userInteractionEnabled);
+
+    if (!isPiPWindow) return;
+
+    // When multiple PiP windows exist, check ALL of them — the triggering
+    // window might not be the Doubao one, but a coexisting one might be.
+    if (HasMultiplePiPWindows()) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        NSArray *allWindows = [(id)[UIApplication sharedApplication] performSelector:NSSelectorFromString(@"windows")];
+#pragma clang diagnostic pop
+        for (UIWindow *w in allWindows) {
+            if ([SafeClassName(w) isEqualToString:@"SBPictureInPictureWindow"]) {
+                BOOL wIsDoubao = IsDoubaoPiPWindow(w);
+                WriteLog(@"[HIDE-COEX] ptr=%p alpha=%.2f hidden=%d isDoubao=%d",
+                         w, w.alpha, w.hidden, wIsDoubao);
+                if (wIsDoubao && w.alpha != 0.0) {
+                    w.alpha = 0.0;
+                    w.userInteractionEnabled = NO;
+                    WriteLog(@"[WINDOW] Hidden coexisting Doubao PiP ptr=%p reason=%@", w, reason);
+
+                    UIViewController *wRvc = w.rootViewController;
+                    if (wRvc) {
+                        id wPipCtrl = SafeKVC(wRvc, @"_pipController");
+                        if (wPipCtrl) {
+                            pid_t pid = GetDoubaoPid(wPipCtrl);
+                            if (pid > 0) AcquireExtraAssertion(pid);
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+    // Single PiP window: direct check
+    BOOL isDoubao = IsDoubaoPiPWindow(window);
+    WriteLog(@"[HIDE-IDENT] isDoubao=%d for reason=%@ ptr=%p", isDoubao, reason, window);
+
+    if (!isDoubao) return;
 
     BOOL changed = NO;
     if (window.alpha != 0.0) {
@@ -331,11 +404,13 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 }
 
 - (void)setAlpha:(CGFloat)alpha {
-    if (alpha > 0.0 && IsDoubaoPiPWindow(self)) {
+    if (IsDoubaoPiPWindow(self)) {
+        WriteLog(@"[SETALPHA] blocked alpha=%.2f -> 0.0 ptr=%p", alpha, self);
         %orig(0.0);
         HideDoubaoWindow(self, @"setAlpha");
         return;
     }
+    WriteLog(@"[SETALPHA] passed alpha=%.2f ptr=%p", alpha, self);
     %orig;
 }
 
@@ -397,5 +472,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v0.0.5");
+    WriteLog(@"[INIT] HideDoubaoPiP v0.0.6");
 }
