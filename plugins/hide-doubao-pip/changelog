@@ -1,10 +1,11 @@
-HideDoubaoPiP v2
+HideDoubaoPiP v1.0.0
 
 主要作用：仅隐藏豆包输入法创建的 PiP 悬浮窗，保留 Bilibili、微信等正常视频 PiP。
 
-相对最早 v2 的主要变化：
-- 移除宽泛的 SBPIPPegasusAdapter 匹配，避免误隐藏正常视频 PiP。
-- 增加豆包输入法 bundle/process 识别，并在 bundle 为空时使用保守的多信号 PiP 视图特征判断。
-- 不再使用 hidden=YES 破坏系统 PiP 状态机，仅透明化窗口并禁用交互。
-- 增加 PiP 内部布局触发点，解决复用 PiP 容器后悬浮窗重新出现的问题。
-- release 版本不写日志文件，debug 版本保留 /var/mobile/Documents/PiPArrowHide.log 便于排查。
+主要变化：
+- 保留 v0.0.10 的 viewTree 共存识别逻辑，处理豆包与微信/Bilibili PiP 共存时的逐窗口识别。
+- 移除 BKS、pid、idle timer、keepalive 等可能影响系统状态或耗电的逻辑。
+- 减少高频诊断日志，只保留 INIT 和实际隐藏事件。
+- HasMultipleActivePiPWindows 高频 layout 路径增加 100ms 缓存，setHidden/setAlpha/didMoveToWindow 关键事件强制刷新。
+- WriteLog 改用 localtime_r + strftime 生成时间戳，避免每次创建 NSDateFormatter。
+- 日志文件继续使用 /var/mobile/Documents/PiPArrowHide.log，最大 512KB，超过后截断重写，保留少量后续诊断日志。

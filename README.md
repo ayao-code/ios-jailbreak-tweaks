@@ -46,7 +46,7 @@ plugins/
 │   ├── Tweak.xm
 │   ├── HideDoubaoPiP.plist
 │   ├── changelog
-│   └── ayao.hidedoubaopip_0.0.2_iphoneos-arm64.deb
+│   └── ayao.hidedoubaopip_1.0.0_iphoneos-arm64.deb
 └── another-plugin/
     ├── README.md
     ├── Makefile

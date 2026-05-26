@@ -11,7 +11,7 @@
 - 对识别出的豆包输入法 PiP 执行 `window.alpha = 0`，并禁用触摸。
 - 不使用 `hidden=YES`，避免破坏系统 PiP 状态机。
 - 通过 PiP 内部 layout 触发点重新应用隐藏，处理 PiP 容器复用后再次出现的问题。
-- release 版本关闭日志输出。
+- 保留 `/var/mobile/Documents/PiPArrowHide.log` 低频诊断日志，达到 512KB 后截断重写，便于后续分析弹窗和耗电问题。
 
 ## 兼容环境
 
@@ -22,9 +22,9 @@
 
 ## 安装
 
-下载 `ayao.hidedoubaopip_0.0.2_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
+下载 `ayao.hidedoubaopip_1.0.0_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
 
-仓库内对应安装包路径：`plugins/hide-doubao-pip/ayao.hidedoubaopip_0.0.2_iphoneos-arm64.deb`。
+仓库内对应安装包路径：`plugins/hide-doubao-pip/ayao.hidedoubaopip_1.0.0_iphoneos-arm64.deb`。
 
 > 如果设备上已经安装旧包 `com.dada.hidedoubaopip`，请先卸载旧包后再安装新版；新版 package id 为 `ayao.hidedoubaopip`。
 
