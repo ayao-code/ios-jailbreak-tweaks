@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
+#import <objc/message.h>
 #import <sys/stat.h>
 #import <time.h>
 
@@ -255,6 +256,55 @@ static BOOL IsDoubaoPiPWindow(UIWindow *window) {
     return IsDoubaoPiPWindowWithRefresh(window, NO);
 }
 
+static BOOL ObjectLooksLikePiPStashTarget(id object) {
+    NSString *className = SafeClassName(object);
+    return [className containsString:@"PIP"] || [className containsString:@"PictureInPicture"] || [className hasPrefix:@"PG"];
+}
+
+static BOOL StashObjectIfSupported(id object) {
+    if (!object || !ObjectLooksLikePiPStashTarget(object)) return NO;
+
+    SEL selector = NSSelectorFromString(@"setStashed:");
+    if (![object respondsToSelector:selector]) return NO;
+
+    @try {
+        ((void (*)(id, SEL, BOOL))objc_msgSend)(object, selector, YES);
+        return YES;
+    } @catch (NSException *e) {
+        return NO;
+    }
+}
+
+static BOOL StashViewControllerTree(UIViewController *viewController, NSUInteger maxDepth) {
+    if (!viewController) return NO;
+    if (StashObjectIfSupported(viewController)) return YES;
+    if (maxDepth == 0) return NO;
+
+    for (UIViewController *child in viewController.childViewControllers) {
+        if (StashViewControllerTree(child, maxDepth - 1)) return YES;
+    }
+    return NO;
+}
+
+static BOOL StashDoubaoWindow(UIWindow *window) {
+    UIViewController *rvc = window.rootViewController;
+    if (!rvc) return NO;
+    if (StashViewControllerTree(rvc, 4)) return YES;
+
+    NSArray *keys = @[
+        @"_pictureInPictureViewController",
+        @"_pegasusPictureInPictureViewController",
+        @"_pipViewController",
+        @"_contentViewController"
+    ];
+    for (NSString *key in keys) {
+        id object = SafeKVC(rvc, key);
+        if ([object isKindOfClass:[UIViewController class]] && StashViewControllerTree(object, 3)) return YES;
+        if (StashObjectIfSupported(object)) return YES;
+    }
+    return NO;
+}
+
 static void HideDoubaoWindow(UIWindow *window, NSString *reason) {
     if (!window || !IsVisiblePiPWindow(window)) return;
 
@@ -268,18 +318,20 @@ static void HideDoubaoWindow(UIWindow *window, NSString *reason) {
             if (!IsVisiblePiPWindow(w)) continue;
             if (!IsDoubaoPiPWindow(w)) continue;
 
+            BOOL stashed = StashDoubaoWindow(w);
             w.alpha = 0.0;
             w.userInteractionEnabled = NO;
-            WriteLog(@"[WINDOW] Hidden Doubao PiP ptr=%p reason=%@", w, reason);
+            WriteLog(@"[WINDOW] Hidden Doubao PiP ptr=%p reason=%@ stashed=%d", w, reason, stashed);
         }
         return;
     }
 
     if (!IsDoubaoPiPWindowWithRefresh(window, forceRefresh)) return;
 
+    BOOL stashed = StashDoubaoWindow(window);
     window.alpha = 0.0;
     window.userInteractionEnabled = NO;
-    WriteLog(@"[WINDOW] Hidden Doubao PiP ptr=%p reason=%@", window, reason);
+    WriteLog(@"[WINDOW] Hidden Doubao PiP ptr=%p reason=%@ stashed=%d", window, reason, stashed);
 }
 
 static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
@@ -304,6 +356,7 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 
 - (void)setAlpha:(CGFloat)alpha {
     if (alpha > 0.01 && IsDoubaoPiPWindowWithRefresh(self, YES)) {
+        StashDoubaoWindow(self);
         %orig(0.0);
         self.userInteractionEnabled = NO;
         return;
@@ -357,5 +410,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v1.0.0");
+    WriteLog(@"[INIT] HideDoubaoPiP v1.0.1");
 }
