@@ -264,15 +264,24 @@ static BOOL ObjectLooksLikePiPStashTarget(id object) {
 static BOOL StashObjectIfSupported(id object) {
     if (!object || !ObjectLooksLikePiPStashTarget(object)) return NO;
 
-    SEL selector = NSSelectorFromString(@"setStashed:");
-    if (![object respondsToSelector:selector]) return NO;
+    SEL animatedSelector = NSSelectorFromString(@"setStashed:animated:");
+    SEL simpleSelector = NSSelectorFromString(@"setStashed:");
 
     @try {
-        ((void (*)(id, SEL, BOOL))objc_msgSend)(object, selector, YES);
-        return YES;
+        if ([object respondsToSelector:animatedSelector]) {
+            ((void (*)(id, SEL, BOOL, BOOL))objc_msgSend)(object, animatedSelector, YES, YES);
+            return YES;
+        }
+
+        if ([object respondsToSelector:simpleSelector]) {
+            ((void (*)(id, SEL, BOOL))objc_msgSend)(object, simpleSelector, YES);
+            return YES;
+        }
     } @catch (NSException *e) {
         return NO;
     }
+
+    return NO;
 }
 
 static BOOL StashViewControllerTree(UIViewController *viewController, NSUInteger maxDepth) {
@@ -410,5 +419,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v1.0.1");
+    WriteLog(@"[INIT] HideDoubaoPiP v1.0.2");
 }
