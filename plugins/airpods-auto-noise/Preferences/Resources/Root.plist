@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>AirPodsAutoNoise</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>ayao.airpodsautonoise</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>label</key>
+			<string>启用插件</string>
+			<key>PostNotification</key>
+			<string>ayao.airpodsautonoise/preferences.changed</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>default</key>
+			<string>transparency</string>
+			<key>defaults</key>
+			<string>ayao.airpodsautonoise</string>
+			<key>key</key>
+			<string>postPauseBehavior</string>
+			<key>label</key>
+			<string>暂停后行为</string>
+			<key>PostNotification</key>
+			<string>ayao.airpodsautonoise/preferences.changed</string>
+			<key>validTitles</key>
+			<array>
+				<string>切到通透</string>
+				<string>切到普通</string>
+				<string>不处理</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>transparency</string>
+				<string>normal</string>
+				<string>none</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>默认连接耳机时不自动开启降噪。播放开始时立即切主动降噪；暂停/停止时按上方选项执行。</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>AirPodsAutoNoise</string>
+</dict>
+</plist>
