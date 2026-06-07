@@ -2,7 +2,7 @@
 
 AirPods Pro 系列自动降噪稳定版，适用于 iOS 16 Dopamine rootless 环境。
 
-当前版本：v1.0.0
+当前版本：v1.0.1
 
 ## 功能
 
@@ -25,6 +25,10 @@ AirPods Pro 系列自动降噪稳定版，适用于 iOS 16 Dopamine rootless 环
 日志路径：`/var/mobile/Library/Logs/AirPodsAutoNoise.log`
 
 日志有大小上限，默认只记录关键状态迁移和错误。
+
+## v1.0.1 变更
+
+- 为系统设置入口补充 AirPods 风格黑白图标。
 
 ## v1.0.0 Release
 

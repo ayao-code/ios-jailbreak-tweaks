@@ -815,7 +815,7 @@ static void AANStart(void) {
     if (!AANResolveMediaRemote()) return;
     AANRegisterNotifications();
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, AANPrefsChanged, (__bridge CFStringRef)kPrefsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-    AANLog(@"AirPodsAutoNoise v1.0.0 started");
+    AANLog(@"AirPodsAutoNoise v1.0.1 started");
     AANReconcile(@"startup");
     AANQueryPlaybackAndReconcile(@"startup-playback");
     AANScheduleStartupReconcile(1.5, @"startup-reconcile-1");
