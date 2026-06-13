@@ -1,9 +1,0 @@
-Package: com.yaofugen.tb-antijbdetect
-Name: TBAntiJBDetect
-Version: 1.0.0
-Architecture: iphoneos-arm64
-Description: Lightweight jailbreak detection bypass for Taobao
-Maintainer: ayao
-Author: ayao
-Section: Tweaks
-Depends: mobilesubstrate
