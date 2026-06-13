@@ -1,9 +1,0 @@
-Package: com.yaofugen.jd-antijbdetect
-Name: JDAntiJBDetect
-Version: 1.0.0
-Architecture: iphoneos-arm64
-Description: Lightweight jailbreak detection bypass for JD (beta)
-Maintainer: ayao
-Author: ayao
-Section: Tweaks
-Depends: mobilesubstrate
