@@ -1,15 +1,15 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
-#import <objc/message.h>
 #import <sys/stat.h>
 #import <time.h>
 
 static FILE *logFile = NULL;
-static const NSUInteger kMaxLogSize = 512 * 1024;
+static const NSUInteger kMaxLogSize = 256 * 1024;
 static NSString *const kLogPath = @"/var/mobile/Documents/PiPArrowHide.log";
 static const NSTimeInterval kPiPWindowCountCacheInterval = 0.10;
 static NSTimeInterval sLastPiPWindowCountCheckTime = 0;
 static BOOL sLastHasMultipleActivePiPWindows = NO;
+static NSMutableDictionary<NSString *, NSNumber *> *sThrottleTimes = nil;
 
 typedef NS_ENUM(NSInteger, DoubaoPiPIdentity) {
     DoubaoPiPIdentityUnknown = 0,
@@ -29,10 +29,12 @@ static void WriteLog(NSString *format, ...) {
         logFile = fopen(kLogPath.UTF8String, shouldResetLog ? "w" : "a");
     }
     if (!logFile) return;
+
     va_list args;
     va_start(args, format);
     NSString *msg = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
+
     time_t rawTime;
     time(&rawTime);
     struct tm timeInfo;
@@ -43,16 +45,16 @@ static void WriteLog(NSString *format, ...) {
     fflush(logFile);
 }
 
-static BOOL IsDoubaoBundleID(id value) {
-    return [value isKindOfClass:[NSString class]] && [(NSString *)value isEqualToString:@"com.bytedance.ios.doubaoime"];
-}
+static BOOL ShouldRunThrottled(NSString *key, NSTimeInterval interval) {
+    if (key.length == 0) return YES;
+    if (!sThrottleTimes) sThrottleTimes = [NSMutableDictionary dictionary];
 
-static DoubaoPiPIdentity IdentityFromBundleID(id value) {
-    if (![value isKindOfClass:[NSString class]]) return DoubaoPiPIdentityUnknown;
+    NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+    NSNumber *last = sThrottleTimes[key];
+    if (last && now - last.doubleValue < interval) return NO;
 
-    NSString *bundleID = (NSString *)value;
-    if (bundleID.length == 0) return DoubaoPiPIdentityUnknown;
-    return IsDoubaoBundleID(bundleID) ? DoubaoPiPIdentityDoubao : DoubaoPiPIdentityNonDoubao;
+    sThrottleTimes[key] = @(now);
+    return YES;
 }
 
 static id SafeKVC(id object, NSString *key) {
@@ -73,60 +75,81 @@ static NSString *SafeClassName(id object) {
     }
 }
 
-static DoubaoPiPIdentity IdentityFromProcess(id process) {
-    if (!process) return DoubaoPiPIdentityUnknown;
+static NSString *StringValue(id value) {
+    return [value isKindOfClass:[NSString class]] && [(NSString *)value length] > 0 ? value : nil;
+}
+
+static BOOL IsDoubaoBundleID(id value) {
+    return [value isKindOfClass:[NSString class]] && [(NSString *)value isEqualToString:@"com.bytedance.ios.doubaoime"];
+}
+
+static DoubaoPiPIdentity IdentityFromBundleID(id value) {
+    NSString *bundleID = StringValue(value);
+    if (bundleID.length == 0) return DoubaoPiPIdentityUnknown;
+    return IsDoubaoBundleID(bundleID) ? DoubaoPiPIdentityDoubao : DoubaoPiPIdentityNonDoubao;
+}
+
+static NSString *BundleIDFromProcess(id process) {
+    if (!process) return nil;
 
     @try {
         if ([process respondsToSelector:@selector(bundleIdentifier)]) {
-            DoubaoPiPIdentity identity = IdentityFromBundleID([process performSelector:@selector(bundleIdentifier)]);
-            if (identity != DoubaoPiPIdentityUnknown) return identity;
+            NSString *bundleID = StringValue([process performSelector:@selector(bundleIdentifier)]);
+            if (bundleID.length > 0) return bundleID;
         }
         if ([process respondsToSelector:@selector(bundleID)]) {
-            DoubaoPiPIdentity identity = IdentityFromBundleID([process performSelector:@selector(bundleID)]);
-            if (identity != DoubaoPiPIdentityUnknown) return identity;
+            NSString *bundleID = StringValue([process performSelector:@selector(bundleID)]);
+            if (bundleID.length > 0) return bundleID;
         }
     } @catch (NSException *e) {}
 
-    DoubaoPiPIdentity identity = IdentityFromBundleID(SafeKVC(process, @"bundleIdentifier"));
-    if (identity != DoubaoPiPIdentityUnknown) return identity;
-
-    return IdentityFromBundleID(SafeKVC(process, @"bundleID"));
+    NSString *bundleID = StringValue(SafeKVC(process, @"bundleIdentifier"));
+    if (bundleID.length > 0) return bundleID;
+    return StringValue(SafeKVC(process, @"bundleID"));
 }
 
-static DoubaoPiPIdentity IdentityFromPegasusApp(id pipCtrl) {
-    if (!pipCtrl) return DoubaoPiPIdentityUnknown;
-
+static NSString *BundleIDFromPegasusApp(id pipCtrl) {
     id adapter = SafeKVC(pipCtrl, @"_adapter");
-    if (!adapter) return DoubaoPiPIdentityUnknown;
-
     id pegasus = SafeKVC(adapter, @"_pegasusController");
-    if (!pegasus) return DoubaoPiPIdentityUnknown;
-
     id activeApp = SafeKVC(pegasus, @"_activePictureInPictureApplication");
-    if (!activeApp) return DoubaoPiPIdentityUnknown;
-
-    return IdentityFromBundleID(SafeKVC(activeApp, @"_bundleIdentifier"));
+    return StringValue(SafeKVC(activeApp, @"_bundleIdentifier"));
 }
 
-static DoubaoPiPIdentity IdentityFromPiPControllerLocal(id pipCtrl) {
-    if (!pipCtrl) return DoubaoPiPIdentityUnknown;
+static NSString *BundleIDFromPiPController(id pipCtrl) {
+    if (!pipCtrl) return nil;
 
     NSArray *bundleKeys = @[
         @"_bundleIDForAppAnimatingPIPStartInBackground",
         @"_bundleIDForAppRecentlyStoppingPIP"
     ];
     for (NSString *key in bundleKeys) {
-        DoubaoPiPIdentity identity = IdentityFromBundleID(SafeKVC(pipCtrl, key));
-        if (identity != DoubaoPiPIdentityUnknown) return identity;
+        NSString *bundleID = StringValue(SafeKVC(pipCtrl, key));
+        if (bundleID.length > 0) return bundleID;
     }
 
     NSArray *processKeys = @[@"_pipProcess", @"_applicationProcess"];
     for (NSString *key in processKeys) {
-        DoubaoPiPIdentity identity = IdentityFromProcess(SafeKVC(pipCtrl, key));
-        if (identity != DoubaoPiPIdentityUnknown) return identity;
+        NSString *bundleID = BundleIDFromProcess(SafeKVC(pipCtrl, key));
+        if (bundleID.length > 0) return bundleID;
     }
 
-    return DoubaoPiPIdentityUnknown;
+    return BundleIDFromPegasusApp(pipCtrl);
+}
+
+static DoubaoPiPIdentity IdentityFromPiPController(id pipCtrl) {
+    return IdentityFromBundleID(BundleIDFromPiPController(pipCtrl));
+}
+
+static id PiPControllerFromWindow(UIWindow *window) {
+    return SafeKVC(window.rootViewController, @"_pipController");
+}
+
+static NSString *BundleIDFromPiPWindow(UIWindow *window) {
+    return BundleIDFromPiPController(PiPControllerFromWindow(window));
+}
+
+static DoubaoPiPIdentity IdentityFromPiPWindow(UIWindow *window) {
+    return IdentityFromPiPController(PiPControllerFromWindow(window));
 }
 
 static BOOL IsPiPWindow(UIWindow *window) {
@@ -168,10 +191,10 @@ static BOOL ViewIsHiddenOrTransparent(UIView *view) {
 static BOOL RectLooksLikeDoubaoPiP(CGRect rect) {
     CGFloat width = CGRectGetWidth(rect);
     CGFloat height = CGRectGetHeight(rect);
-    if (width < 160.0 || width > 260.0 || height < 90.0 || height > 150.0) return NO;
+    if (width < 150.0 || width > 340.0 || height < 80.0 || height > 220.0) return NO;
 
     CGFloat aspect = width / MAX(height, 1.0);
-    return aspect > 1.55 && aspect < 1.95;
+    return aspect > 1.35 && aspect < 2.35;
 }
 
 static BOOL IsLikelyDoubaoPiPWindowByViewTree(UIWindow *window) {
@@ -191,18 +214,18 @@ static BOOL IsLikelyDoubaoPiPWindowByViewTree(UIWindow *window) {
     if (!ViewIsHiddenOrTransparent(progressView)) return NO;
     if (!ViewIsHiddenOrTransparent(backdropView)) return NO;
     if (!ViewIsHiddenOrTransparent(dimmingView)) return NO;
-    if (!stashView.hidden) return NO;
 
     NSUInteger hiddenButtons = CountDirectSubviewClass(layoutView, @"PGButtonView", YES);
     NSUInteger visibleButtons = CountDirectSubviewClass(layoutView, @"PGButtonView", NO);
-    return hiddenButtons >= 3 && visibleButtons <= 2;
+    return hiddenButtons >= 3 && visibleButtons <= 2 && stashView.hidden;
 }
 
-static DoubaoPiPIdentity IdentityFromPiPController(id pipCtrl) {
-    DoubaoPiPIdentity identity = IdentityFromPiPControllerLocal(pipCtrl);
-    if (identity != DoubaoPiPIdentityUnknown) return identity;
-
-    return IdentityFromPegasusApp(pipCtrl);
+static NSArray<UIWindow *> *SpringBoardWindows(void) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    NSArray *windows = [(id)[UIApplication sharedApplication] performSelector:NSSelectorFromString(@"windows")];
+#pragma clang diagnostic pop
+    return windows ?: @[];
 }
 
 static BOOL HasMultipleActivePiPWindows(UIWindow *candidate, BOOL forceRefresh) {
@@ -212,135 +235,105 @@ static BOOL HasMultipleActivePiPWindows(UIWindow *candidate, BOOL forceRefresh) 
     }
 
     NSUInteger count = 0;
-    BOOL hasMultiple = NO;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-    NSArray *allWindows = [(id)[UIApplication sharedApplication] performSelector:NSSelectorFromString(@"windows")];
-#pragma clang diagnostic pop
-    for (UIWindow *w in allWindows) {
-        if (w == candidate || IsVisiblePiPWindow(w)) {
+    for (UIWindow *window in SpringBoardWindows()) {
+        if (window == candidate || IsVisiblePiPWindow(window)) {
             count++;
-            if (count >= 2) {
-                hasMultiple = YES;
-                break;
-            }
+            if (count >= 2) break;
         }
     }
 
     sLastPiPWindowCountCheckTime = now;
-    sLastHasMultipleActivePiPWindows = hasMultiple;
-    return hasMultiple;
+    sLastHasMultipleActivePiPWindows = count >= 2;
+    return sLastHasMultipleActivePiPWindows;
 }
 
 static BOOL IsDoubaoPiPWindowWithRefresh(UIWindow *window, BOOL forceRefresh) {
-    if (!window) return NO;
-    if (!IsPiPWindow(window)) return NO;
+    if (!window || !IsPiPWindow(window)) return NO;
 
-    UIViewController *rvc = window.rootViewController;
-    if (!rvc) return NO;
-
-    id pipCtrl = SafeKVC(rvc, @"_pipController");
-    DoubaoPiPIdentity identity = IdentityFromPiPController(pipCtrl);
-
+    DoubaoPiPIdentity identity = IdentityFromPiPWindow(window);
     if (!HasMultipleActivePiPWindows(window, forceRefresh)) {
         if (identity == DoubaoPiPIdentityDoubao) return YES;
         if (identity == DoubaoPiPIdentityNonDoubao) return NO;
-    } else {
-        return IsLikelyDoubaoPiPWindowByViewTree(window);
+    } else if (identity != DoubaoPiPIdentityUnknown) {
+        return identity == DoubaoPiPIdentityDoubao;
     }
 
     return IsLikelyDoubaoPiPWindowByViewTree(window);
 }
 
-static BOOL IsDoubaoPiPWindow(UIWindow *window) {
-    return IsDoubaoPiPWindowWithRefresh(window, NO);
+static void AddViewIfPresent(NSMutableArray<UIView *> *views, UIView *view) {
+    if (!view || [views containsObject:view]) return;
+    [views addObject:view];
 }
 
-static BOOL ObjectLooksLikePiPStashTarget(id object) {
-    NSString *className = SafeClassName(object);
-    return [className containsString:@"PIP"] || [className containsString:@"PictureInPicture"] || [className hasPrefix:@"PG"];
+static NSArray<UIView *> *DoubaoContentHideTargets(UIWindow *window) {
+    UIView *root = window.rootViewController.view;
+    if (!root) return @[];
+
+    NSMutableArray<UIView *> *targets = [NSMutableArray array];
+    AddViewIfPresent(targets, FindViewByClassName(root, @"PGLayoutContainerView", 8));
+    AddViewIfPresent(targets, FindViewByClassName(root, @"PGControlsView", 8));
+    AddViewIfPresent(targets, FindViewByClassName(root, @"PGDimmingView", 8));
+    AddViewIfPresent(targets, FindViewByClassName(root, @"PGCABackdropLayerView", 8));
+    AddViewIfPresent(targets, FindViewByClassName(root, @"PGProgressIndicator", 8));
+    return targets;
 }
 
-static BOOL StashObjectIfSupported(id object) {
-    if (!object || !ObjectLooksLikePiPStashTarget(object)) return NO;
+static UIView *DoubaoHitView(UIWindow *window) {
+    return FindViewByClassName(window.rootViewController.view, @"PGHitTestExtendableView", 8);
+}
 
-    SEL animatedSelector = NSSelectorFromString(@"setStashed:animated:");
-    SEL simpleSelector = NSSelectorFromString(@"setStashed:");
+static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
+    UIView *hitView = DoubaoHitView(window);
+    NSArray<UIView *> *targets = DoubaoContentHideTargets(window);
+    BOOL changed = NO;
+    CGFloat beforeHitOpacity = hitView ? hitView.layer.opacity : -1.0;
+    if (hitView && beforeHitOpacity > 0.01) changed = YES;
+    hitView.layer.opacity = 0.0;
 
-    @try {
-        if ([object respondsToSelector:animatedSelector]) {
-            ((void (*)(id, SEL, BOOL, BOOL))objc_msgSend)(object, animatedSelector, YES, YES);
-            return YES;
+    NSUInteger restoredTargets = 0;
+    for (UIView *target in targets) {
+        if (target.alpha > 0.01 || target.userInteractionEnabled) {
+            changed = YES;
+            restoredTargets++;
         }
-
-        if ([object respondsToSelector:simpleSelector]) {
-            ((void (*)(id, SEL, BOOL))objc_msgSend)(object, simpleSelector, YES);
-            return YES;
-        }
-    } @catch (NSException *e) {
-        return NO;
+        target.alpha = 0.0;
+        target.userInteractionEnabled = NO;
     }
 
-    return NO;
-}
-
-static BOOL StashViewControllerTree(UIViewController *viewController, NSUInteger maxDepth) {
-    if (!viewController) return NO;
-    if (StashObjectIfSupported(viewController)) return YES;
-    if (maxDepth == 0) return NO;
-
-    for (UIViewController *child in viewController.childViewControllers) {
-        if (StashViewControllerTree(child, maxDepth - 1)) return YES;
+    if (changed || ShouldRunThrottled([NSString stringWithFormat:@"hide-sample-%p", window], 30.0)) {
+        WriteLog(@"[HIDE] reason=%@ mode=hitLayerContent changed=%d bundle=%@ hitOpacity=%.3f->%.3f restoredTargets=%lu targets=%lu windowAlpha=%.3f windowHidden=%d",
+                 reason ?: @"unknown",
+                 changed,
+                 BundleIDFromPiPWindow(window) ?: @"nil",
+                 beforeHitOpacity,
+                 hitView ? hitView.layer.opacity : -1.0,
+                 (unsigned long)restoredTargets,
+                 (unsigned long)targets.count,
+                 window.alpha,
+                 window.hidden);
     }
-    return NO;
-}
-
-static BOOL StashDoubaoWindow(UIWindow *window) {
-    UIViewController *rvc = window.rootViewController;
-    if (!rvc) return NO;
-    if (StashViewControllerTree(rvc, 4)) return YES;
-
-    NSArray *keys = @[
-        @"_pictureInPictureViewController",
-        @"_pegasusPictureInPictureViewController",
-        @"_pipViewController",
-        @"_contentViewController"
-    ];
-    for (NSString *key in keys) {
-        id object = SafeKVC(rvc, key);
-        if ([object isKindOfClass:[UIViewController class]] && StashViewControllerTree(object, 3)) return YES;
-        if (StashObjectIfSupported(object)) return YES;
-    }
-    return NO;
 }
 
 static void HideDoubaoWindow(UIWindow *window, NSString *reason) {
-    if (!window || !IsVisiblePiPWindow(window)) return;
+    if (!window || !IsPiPWindow(window)) return;
 
     BOOL forceRefresh = [reason isEqualToString:@"didMoveToWindow"] || [reason isEqualToString:@"setHidden"] || [reason isEqualToString:@"setAlpha"];
-    if (HasMultipleActivePiPWindows(window, forceRefresh)) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        NSArray *allWindows = [(id)[UIApplication sharedApplication] performSelector:NSSelectorFromString(@"windows")];
-#pragma clang diagnostic pop
-        for (UIWindow *w in allWindows) {
-            if (!IsVisiblePiPWindow(w)) continue;
-            if (!IsDoubaoPiPWindow(w)) continue;
 
-            BOOL stashed = StashDoubaoWindow(w);
-            w.alpha = 0.0;
-            w.userInteractionEnabled = NO;
-            WriteLog(@"[WINDOW] Hidden Doubao PiP ptr=%p reason=%@ stashed=%d", w, reason, stashed);
+    if (HasMultipleActivePiPWindows(window, forceRefresh)) {
+        for (UIWindow *candidate in SpringBoardWindows()) {
+            if (!IsVisiblePiPWindow(candidate)) continue;
+            if (!IsDoubaoPiPWindowWithRefresh(candidate, forceRefresh)) continue;
+            HideSingleDoubaoWindow(candidate, reason);
         }
         return;
     }
 
+    if (!IsVisiblePiPWindow(window)) return;
+
     if (!IsDoubaoPiPWindowWithRefresh(window, forceRefresh)) return;
 
-    BOOL stashed = StashDoubaoWindow(window);
-    window.alpha = 0.0;
-    window.userInteractionEnabled = NO;
-    WriteLog(@"[WINDOW] Hidden Doubao PiP ptr=%p reason=%@ stashed=%d", window, reason, stashed);
+    HideSingleDoubaoWindow(window, reason);
 }
 
 static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
@@ -364,13 +357,10 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 }
 
 - (void)setAlpha:(CGFloat)alpha {
-    if (alpha > 0.01 && IsDoubaoPiPWindowWithRefresh(self, YES)) {
-        StashDoubaoWindow(self);
-        %orig(0.0);
-        self.userInteractionEnabled = NO;
-        return;
-    }
     %orig;
+    if (alpha > 0.01 && IsDoubaoPiPWindowWithRefresh(self, YES)) {
+        HideSingleDoubaoWindow(self, @"setAlpha");
+    }
 }
 
 - (void)setHidden:(BOOL)hidden {
@@ -419,5 +409,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v1.0.2");
+    WriteLog(@"[INIT] HideDoubaoPiP v1.0.23 hit-layer-content-hide-release");
 }
