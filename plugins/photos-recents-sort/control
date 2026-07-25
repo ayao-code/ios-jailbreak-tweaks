@@ -1,0 +1,9 @@
+Package: ayao.photosrecentssort
+Name: Photos 增强
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: 仅对系统照片 com.apple.mobileslideshow 生效，可在设置中控制图库清爽模式、最近项目时间排序和删除无需确认；不修改照片库、系统数据库、iCloud 同步或其他应用。
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader
