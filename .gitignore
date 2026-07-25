@@ -1,8 +1,5 @@
 .theos/
-packages/
 plugins/*/.theos/
-plugins/*/packages/
-*.deb
 .DS_Store
 DoubaoVoiceHelper.xm
 DoubaoVoiceHelper.plist
