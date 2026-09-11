@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="27ea740d-e05d-4774-844e-a33fb6427319" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/AirPodsAutoNoise.plist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Preferences/AANRootListController.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Preferences/AANRootListController.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Preferences/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Preferences/Resources/Info.plist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Preferences/Resources/Root.plist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Preferences/layout/Library/PreferenceLoader/Preferences/AirPodsAutoNoisePrefs.plist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/Tweak.xm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plugins/airpods-auto-noise/control" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/ayao.airpodsautonoise_0.1.4_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/ayao.airpodsautonoise_0.2.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/ayao.airpodsautonoise_0.2.1_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/ayao.airpodsautonoise_0.4.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.1.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.1.1_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.1.2_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.1.3_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.1.4_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.2.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.2.1_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.1_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.2_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.3_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.4_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.5_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.6_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.7_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.8_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.3.9_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_0.4.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/airpods-auto-noise/packages/ayao.airpodsautonoise_1.0.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/plugins/hide-doubao-pip/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/Tweak.xm" beforeDir="false" afterPath="$PROJECT_DIR$/plugins/hide-doubao-pip/Tweak.xm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/ayao.hidedoubaopip_1.0.2_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/changelog" beforeDir="false" afterPath="$PROJECT_DIR$/plugins/hide-doubao-pip/changelog" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/control" beforeDir="false" afterPath="$PROJECT_DIR$/plugins/hide-doubao-pip/control" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.10-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.11-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.11-2+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.12-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.13-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.3-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.4_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.5-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.5_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.6-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.6-2+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.7-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.8-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.8_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_0.0.9-1+debug_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.0_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.10_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.11_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.12_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.13_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.14_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.15_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.16_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.17_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.18_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.19_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.1_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.20_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.21_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.22_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.2_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.3_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.4_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.5_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.6_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.7_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.8_iphoneos-arm64.deb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.9_iphoneos-arm64.deb" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="1748" />
+  </component>
+  <component name="GOROOT" url="file://$USER_HOME$/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;ayao-code&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:ayao-code/ios-jailbreak-tweaks.git&quot;,
+    &quot;accountId&quot;: &quot;ad1467d8-530a-4b77-9107-c25f747d8b96&quot;
+  }
+}</component>
+  <component name="GradleLocalSettings">
+    <option name="projectSyncType">
+      <map>
+        <entry key="E:/TIM/下载文件/GitCode/GitCode/ESHOP_SRC/04-SourceCode/41-JAVA_SRC" value="PREVIEW" />
+        <entry key="E:/TIM/下载文件/GitCode/GitCode/ESHOP_SRC/04-SourceCode/41-JAVA_SRC/HSUSER" value="PREVIEW" />
+        <entry key="F:/workspeace_idea/idea_bl/benefit-life" value="PREVIEW" />
+      </map>
+    </option>
+  </component>
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="3ECN0CEA0gu7stf2152g9wZL8lE" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Git.Working.Tree.Tab.closed.by.user&quot;: &quot;closed&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.GoLinterPluginOnboarding&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.GoLinterPluginOnboardingV2&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.GoLinterPluginStorageMigration&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.analysis.ui.options.defaults&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/bytedance/work_speace/ios-jailbreak-tweaks&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-gosdk-72a9cf600ed8-3dd3895e5e08-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-261.24374.154" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-GO-261.24374.154" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="27ea740d-e05d-4774-844e-a33fb6427319" name="Changes" comment="" />
+      <created>1779678366011</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1779678366011</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
