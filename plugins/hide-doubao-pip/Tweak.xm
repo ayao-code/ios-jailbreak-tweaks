@@ -10,6 +10,7 @@ static const NSTimeInterval kPiPWindowCountCacheInterval = 0.10;
 static NSTimeInterval sLastPiPWindowCountCheckTime = 0;
 static BOOL sLastHasMultipleActivePiPWindows = NO;
 static NSMutableDictionary<NSString *, NSNumber *> *sThrottleTimes = nil;
+static const void *kWindowLayerMutedKey = &kWindowLayerMutedKey;
 
 typedef NS_ENUM(NSInteger, DoubaoPiPIdentity) {
     DoubaoPiPIdentityUnknown = 0,
@@ -115,7 +116,7 @@ static NSString *BundleIDFromPegasusApp(id pipCtrl) {
     return StringValue(SafeKVC(activeApp, @"_bundleIdentifier"));
 }
 
-static NSString *BundleIDFromPiPController(id pipCtrl) {
+static NSString *LocalBundleIDFromPiPController(id pipCtrl) {
     if (!pipCtrl) return nil;
 
     NSArray *bundleKeys = @[
@@ -133,7 +134,12 @@ static NSString *BundleIDFromPiPController(id pipCtrl) {
         if (bundleID.length > 0) return bundleID;
     }
 
-    return BundleIDFromPegasusApp(pipCtrl);
+    return nil;
+}
+
+static NSString *BundleIDFromPiPController(id pipCtrl) {
+    NSString *bundleID = LocalBundleIDFromPiPController(pipCtrl);
+    return bundleID.length > 0 ? bundleID : BundleIDFromPegasusApp(pipCtrl);
 }
 
 static DoubaoPiPIdentity IdentityFromPiPController(id pipCtrl) {
@@ -146,6 +152,10 @@ static id PiPControllerFromWindow(UIWindow *window) {
 
 static NSString *BundleIDFromPiPWindow(UIWindow *window) {
     return BundleIDFromPiPController(PiPControllerFromWindow(window));
+}
+
+static NSString *LocalBundleIDFromPiPWindow(UIWindow *window) {
+    return LocalBundleIDFromPiPController(PiPControllerFromWindow(window));
 }
 
 static DoubaoPiPIdentity IdentityFromPiPWindow(UIWindow *window) {
@@ -247,18 +257,29 @@ static BOOL HasMultipleActivePiPWindows(UIWindow *candidate, BOOL forceRefresh) 
     return sLastHasMultipleActivePiPWindows;
 }
 
-static BOOL IsDoubaoPiPWindowWithRefresh(UIWindow *window, BOOL forceRefresh) {
-    if (!window || !IsPiPWindow(window)) return NO;
+static DoubaoPiPIdentity EffectiveIdentityFromPiPWindow(UIWindow *window, BOOL forceRefresh) {
+    if (!window || !IsPiPWindow(window)) return DoubaoPiPIdentityUnknown;
 
-    DoubaoPiPIdentity identity = IdentityFromPiPWindow(window);
-    if (!HasMultipleActivePiPWindows(window, forceRefresh)) {
-        if (identity == DoubaoPiPIdentityDoubao) return YES;
-        if (identity == DoubaoPiPIdentityNonDoubao) return NO;
-    } else if (identity != DoubaoPiPIdentityUnknown) {
-        return identity == DoubaoPiPIdentityDoubao;
+    if (HasMultipleActivePiPWindows(window, forceRefresh)) {
+        DoubaoPiPIdentity localIdentity = IdentityFromBundleID(LocalBundleIDFromPiPWindow(window));
+        if (localIdentity != DoubaoPiPIdentityUnknown) return localIdentity;
+        return IsLikelyDoubaoPiPWindowByViewTree(window) ? DoubaoPiPIdentityDoubao : DoubaoPiPIdentityUnknown;
     }
 
-    return IsLikelyDoubaoPiPWindowByViewTree(window);
+    DoubaoPiPIdentity identity = IdentityFromPiPWindow(window);
+    if (identity != DoubaoPiPIdentityUnknown) return identity;
+    return IsLikelyDoubaoPiPWindowByViewTree(window) ? DoubaoPiPIdentityDoubao : DoubaoPiPIdentityUnknown;
+}
+
+static BOOL IsDoubaoPiPWindowWithRefresh(UIWindow *window, BOOL forceRefresh) {
+    return EffectiveIdentityFromPiPWindow(window, forceRefresh) == DoubaoPiPIdentityDoubao;
+}
+
+static BOOL HasExplicitDoubaoIdentity(UIWindow *window, BOOL forceRefresh) {
+    NSString *bundleID = HasMultipleActivePiPWindows(window, forceRefresh)
+        ? LocalBundleIDFromPiPWindow(window)
+        : BundleIDFromPiPWindow(window);
+    return IsDoubaoBundleID(bundleID);
 }
 
 static void AddViewIfPresent(NSMutableArray<UIView *> *views, UIView *view) {
@@ -287,8 +308,15 @@ static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
     UIView *hitView = DoubaoHitView(window);
     NSArray<UIView *> *targets = DoubaoContentHideTargets(window);
     BOOL changed = NO;
+    CGFloat beforeWindowOpacity = window.layer.opacity;
     CGFloat beforeHitOpacity = hitView ? hitView.layer.opacity : -1.0;
+    BOOL shouldMuteWindowLayer = HasExplicitDoubaoIdentity(window, NO);
+    if (shouldMuteWindowLayer && beforeWindowOpacity > 0.01) changed = YES;
     if (hitView && beforeHitOpacity > 0.01) changed = YES;
+    if (shouldMuteWindowLayer) {
+        window.layer.opacity = 0.0;
+        objc_setAssociatedObject(window, kWindowLayerMutedKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
     hitView.layer.opacity = 0.0;
 
     NSUInteger restoredTargets = 0;
@@ -302,10 +330,13 @@ static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
     }
 
     if (changed || ShouldRunThrottled([NSString stringWithFormat:@"hide-sample-%p", window], 30.0)) {
-        WriteLog(@"[HIDE] reason=%@ mode=hitLayerContent changed=%d bundle=%@ hitOpacity=%.3f->%.3f restoredTargets=%lu targets=%lu windowAlpha=%.3f windowHidden=%d",
+        WriteLog(@"[HIDE] reason=%@ mode=windowLayerHitContent changed=%d bundle=%@ explicit=%d windowOpacity=%.3f->%.3f hitOpacity=%.3f->%.3f restoredTargets=%lu targets=%lu windowAlpha=%.3f windowHidden=%d",
                  reason ?: @"unknown",
                  changed,
                  BundleIDFromPiPWindow(window) ?: @"nil",
+                 shouldMuteWindowLayer,
+                 beforeWindowOpacity,
+                 window.layer.opacity,
                  beforeHitOpacity,
                  hitView ? hitView.layer.opacity : -1.0,
                  (unsigned long)restoredTargets,
@@ -313,6 +344,21 @@ static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
                  window.alpha,
                  window.hidden);
     }
+}
+
+static void RestoreWindowLayerIfNeeded(UIWindow *window, NSString *reason, BOOL forceRefresh) {
+    if (![objc_getAssociatedObject(window, kWindowLayerMutedKey) boolValue]) return;
+    if (EffectiveIdentityFromPiPWindow(window, forceRefresh) != DoubaoPiPIdentityNonDoubao) return;
+
+    CGFloat beforeOpacity = window.layer.opacity;
+    window.layer.opacity = window.alpha;
+    objc_setAssociatedObject(window, kWindowLayerMutedKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    WriteLog(@"[RESTORE] reason=%@ bundle=%@ windowOpacity=%.3f->%.3f windowAlpha=%.3f",
+             reason ?: @"unknown",
+             BundleIDFromPiPWindow(window) ?: @"nil",
+             beforeOpacity,
+             window.layer.opacity,
+             window.alpha);
 }
 
 static void HideDoubaoWindow(UIWindow *window, NSString *reason) {
@@ -323,15 +369,21 @@ static void HideDoubaoWindow(UIWindow *window, NSString *reason) {
     if (HasMultipleActivePiPWindows(window, forceRefresh)) {
         for (UIWindow *candidate in SpringBoardWindows()) {
             if (!IsVisiblePiPWindow(candidate)) continue;
-            if (!IsDoubaoPiPWindowWithRefresh(candidate, forceRefresh)) continue;
-            HideSingleDoubaoWindow(candidate, reason);
+            if (IsDoubaoPiPWindowWithRefresh(candidate, forceRefresh)) {
+                HideSingleDoubaoWindow(candidate, reason);
+            } else {
+                RestoreWindowLayerIfNeeded(candidate, reason, forceRefresh);
+            }
         }
         return;
     }
 
     if (!IsVisiblePiPWindow(window)) return;
 
-    if (!IsDoubaoPiPWindowWithRefresh(window, forceRefresh)) return;
+    if (!IsDoubaoPiPWindowWithRefresh(window, forceRefresh)) {
+        RestoreWindowLayerIfNeeded(window, reason, forceRefresh);
+        return;
+    }
 
     HideSingleDoubaoWindow(window, reason);
 }
@@ -360,6 +412,8 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
     %orig;
     if (alpha > 0.01 && IsDoubaoPiPWindowWithRefresh(self, YES)) {
         HideSingleDoubaoWindow(self, @"setAlpha");
+    } else if (alpha > 0.01) {
+        RestoreWindowLayerIfNeeded(self, @"setAlpha", YES);
     }
 }
 
@@ -382,6 +436,22 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %hook PGHitTestExtendableView
+
+- (void)setAlpha:(CGFloat)alpha {
+    UIWindow *window = ((UIView *)self).window;
+    if (alpha > 0.01 && IsDoubaoPiPWindowWithRefresh(window, YES)) {
+        %orig;
+        ((UIView *)self).layer.opacity = 0.0;
+        NSString *logKey = [NSString stringWithFormat:@"hit-alpha-%p", self];
+        if (ShouldRunThrottled(logKey, 10.0)) {
+            WriteLog(@"[HIDE] reason=hitTestSetAlpha requestedAlpha=%.3f bundle=%@",
+                     alpha,
+                     BundleIDFromPiPWindow(window));
+        }
+        return;
+    }
+    %orig;
+}
 
 - (void)layoutSubviews {
     %orig;
@@ -409,5 +479,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 %end
 
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v1.0.23 hit-layer-content-hide-release");
+    WriteLog(@"[INIT] HideDoubaoPiP v1.0.25 window-layer-hide-release");
 }

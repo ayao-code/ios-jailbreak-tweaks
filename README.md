@@ -18,6 +18,8 @@
 
 适用于 iOS 16 Dopamine rootless 越狱环境。安装后可以在系统设置中通过 `AiPowerButton` 配置长按关机键启动豆包或 DeepSeek 语音助手。
 
+当前保留的最新版安装包为 `1.0.1`。
+
 - 豆包模式：长按关机键启动豆包语音输入，发送由用户在豆包内手动完成。
 - DeepSeek 模式：长按关机键开始语音输入，松开关机键后自动发送。
 - 保留系统原始操作：音量键加关机键仍会触发 iOS 原生关机/SOS 界面。
@@ -26,24 +28,33 @@
 
 路径：[`plugins/hide-doubao-pip`](plugins/hide-doubao-pip)
 
-适用于 iOS 16 Dopamine rootless 越狱环境。安装后仅隐藏豆包输入法创建的 PiP 悬浮窗，通过透明化窗口并禁用触摸来避免干预正常视频 PiP。
+适用于 iOS 16 Dopamine rootless 越狱环境。安装后仅隐藏豆包输入法创建的 PiP 悬浮窗，通过透明化渲染层保留 PiP 会话并避免干预正常视频 PiP。
+
+当前稳定版为 `1.0.25`；带 `~debug` 后缀的安装包仅用于限定时间的故障定位，不作为正式稳定版。
 
 - 只注入 SpringBoard，只处理系统 PiP 窗口。
 - 优先通过豆包输入法 bundle/process 识别目标 PiP。
 - bundle 信息缺失时使用保守的 PiP 视图结构兜底识别。
-- 不包含右侧停靠、缩放或常驻 watchdog。
+- 稳定版不包含右侧停靠、缩放、常驻 watchdog 或持续诊断采样。
+- 诊断版包含临时状态采样，只应用于限定时间的故障定位，验证完成后应恢复为事件驱动或移除。
 
 ### AirPodsAutoNoise
 
 路径：[`plugins/airpods-auto-noise`](plugins/airpods-auto-noise)
 
-当前目录已补入可维护源码，用于后续继续调整 AirPods 自动降噪行为。该插件目录同时保留历史 `.deb`，方便回滚和对照，但历史安装包不再视为源码替代品。
+当前版本为 `1.0.2`，目录内保留可维护的插件源码、设置面板源码和对应安装包，用于继续调整 AirPods 自动降噪行为。安装包不作为源码替代品。
 
 ### PhotosRecentsSort
 
 路径：[`plugins/photos-recents-sort`](plugins/photos-recents-sort)
 
-该目录当前保留恢复后的排序脚本源码和对应包，用于继续维护相册最近项目排序逻辑。
+该目录当前保留从已安装包分析后恢复的行为级源码骨架和对应安装包，用于继续恢复相册增强功能。`reconstructed/` 不等同于已完整恢复的原始源码，且当前目录还不能作为完整 Theos 项目直接构建。
+
+### XianYuAdCleaner
+
+路径：[`plugins/xianyu-ad-cleaner`](plugins/xianyu-ad-cleaner)
+
+该目录当前只有 `.theos/` 构建痕迹和 `packages/` 下的 `0.1.0` 安装包，尚未补回正式源码，属于待恢复项目；在源码补齐前不能进行可维护的功能修改。
 
 ## 仓库结构
 
@@ -55,7 +66,7 @@ plugins/
 │   ├── control
 │   ├── Tweak.xm
 │   ├── Preferences/
-│   ├── ayao.aipowerbutton_1.0.0_iphoneos-arm64.deb
+│   ├── packages/
 │   └── ...
 ├── airpods-auto-noise/
 │   ├── README.md
@@ -63,8 +74,7 @@ plugins/
 │   ├── control
 │   ├── Tweak.xm
 │   ├── Preferences/
-│   ├── packages/
-│   └── 历史 deb...
+│   └── packages/
 ├── hide-doubao-pip/
 │   ├── README.md
 │   ├── Makefile
@@ -72,12 +82,12 @@ plugins/
 │   ├── Tweak.xm
 │   ├── HideDoubaoPiP.plist
 │   ├── changelog
-│   └── ayao.hidedoubaopip_1.0.0_iphoneos-arm64.deb
+│   └── packages/
 ├── photos-recents-sort/
 │   ├── README.md
 │   ├── control
 │   ├── reconstructed/
-│   └── ayao.photosrecentssort_0.1.0_iphoneos-arm64.deb
+│   └── packages/
 └── xianyu-ad-cleaner/
     ├── packages/
     ├── .theos/
@@ -94,6 +104,15 @@ plugins/
 
 后续所有插件 / App 相关维护，都以 `PROJECT_SOURCE_POLICY.md` 为准。
 
+其中包括以下强制边界：
+
+- 每次只修改实现目标所需的最小范围，不得顺带改变无关功能或系统行为。
+- 插件不得破坏或干扰系统稳定性、安全性及其他插件的正常运行。
+- 不得引入持续高 CPU、高频轮询、忙等待、无意义后台任务或可感知的额外耗电和发热。
+- 监听、定时器、线程及其他资源必须具有明确生命周期，并在不再需要时及时停止或释放。
+- 如果存在 `Preferences/`，其源码、配置、资源和展示内容必须与当前最新版插件保持一致。
+- 无法完成实机稳定性、CPU、内存和续航验证时，必须明确记录未验证项和潜在风险。
+
 ## 新增插件规范
 
 以后新增插件时，统一按下面方式写入仓库：
@@ -105,13 +124,14 @@ plugins/
    - `Makefile`：Theos 构建配置。
    - `control`：Debian 包信息，描述尽量使用中文写清楚。
    - `Tweak.xm` 或对应源码文件。
-   - 当前正式版 `.deb`：放在该插件目录下，文件名保持包名、版本和架构清晰可识别。
-4. 如果插件有设置面板，放在插件自己的 `Preferences/` 目录内。
-5. 不同插件之间不要共用源码文件，避免发布和调试时互相影响。
-6. 不允许只提交 `.deb`、`.theos/`、设备导出结果，而不保留正式源码。
-7. 如果源码来自恢复、重建、反编译整理或设备导出，也必须放回该插件目录，并写清楚来源或恢复说明。
-8. `.theos/` 是构建输出，不算源码；是否保留只取决于排障或恢复需要。
-9. `packages/` 和目录根部下的 `.deb` 是否保留，按仓库实际发布策略处理，但它们不能代替源码。
+4. 如果插件有设置面板，放在插件自己的 `Preferences/` 目录内，并确保其中的源码、配置、资源和展示内容与当前最新版插件一致。
+5. 所有 `.deb` 安装包必须统一放入插件目录下的 `packages/`，不得散落在插件根目录；历史包如需保留，也必须移入 `packages/`。
+6. 正式版和调试版安装包必须明确区分；调试版不能替代正式版，也不能作为长期运行版本发布。
+7. 不同插件之间不要共用源码文件，避免发布和调试时互相影响。
+8. 不允许只提交 `.deb`、`.theos/`、设备导出结果，而不保留正式源码。
+9. 如果源码来自恢复、重建、反编译整理或设备导出，也必须放回该插件目录，并写清楚来源或恢复说明。
+10. `.theos/` 是构建输出，不算源码；是否保留只取决于排障或恢复需要。
+11. 所有实现必须遵守最小变更、系统稳定性和资源约束，优先使用系统事件、通知或回调，不得无必要地持续轮询。
 
 ## 构建方式
 
@@ -122,7 +142,7 @@ cd plugins/ai-power-button
 THEOS=/path/to/theos FINALPACKAGE=1 make clean package
 ```
 
-构建完成后的 `.deb` 文件通常会在该插件目录的 `packages/` 下生成。是否同时在项目目录根部保留正式发布包，按当前仓库策略决定；但不论是否保留发布包，源码都必须和项目一起存放。
+构建完成后的 `.deb` 文件通常会在该插件目录的 `packages/` 下生成。所有安装包统一保留在 `packages/`，不得复制到项目根目录；但不论是否保留发布包，源码都必须和项目一起存放。
 
 ## 发版建议
 

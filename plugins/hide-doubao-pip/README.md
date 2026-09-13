@@ -8,7 +8,7 @@
 - 只处理系统 `SBPictureInPictureWindow`。
 - 优先通过豆包输入法 bundle id `com.bytedance.ios.doubaoime` 识别目标 PiP。
 - bundle/process 信息尚未挂载时，用豆包 PiP 的 viewTree 特征兜底；不对明确识别出的非豆包 PiP 执行动作。
-- 不把 `SBPictureInPictureWindow` 设为透明，不禁用 window 交互，不调用系统 stash，不移动 PiP frame。
+- Bundle ID 明确为豆包后，将整个 `SBPictureInPictureWindow` 的 CALayer 渲染设为透明，但不结束 PiP 会话、不调用系统 stash、不移动 PiP frame。
 - 保留 `PGHitTestExtendableView` 作为系统可见的 PiP 命中容器，只将其 CALayer 渲染透明，并隐藏内部内容/控制层。
 - 通过 PiP window 和少量内部 layout 触发点重新应用隐藏，处理系统 layout 后恢复显示的问题。
 - 保留 `/var/mobile/Documents/PiPArrowHide.log` 低频运行日志，达到 256KB 后截断重写。
@@ -22,9 +22,9 @@
 
 ## 安装
 
-下载 `ayao.hidedoubaopip_1.0.23_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
+下载 `ayao.hidedoubaopip_1.0.25_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
 
-仓库内对应安装包路径：`plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.23_iphoneos-arm64.deb`。
+仓库内对应安装包路径：`plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.25_iphoneos-arm64.deb`。
 
 > 如果设备上已经安装旧包 `com.dada.hidedoubaopip`，请先卸载旧包后再安装新版；新版 package id 为 `ayao.hidedoubaopip`。
 
@@ -35,6 +35,24 @@ THEOS=/path/to/theos HDBP_DEBUG_LOGS=0 FINALPACKAGE=1 make clean package
 ```
 
 ## 版本说明
+
+### 1.0.25
+
+- 保留豆包对系统 PiP 会话的占用，只将明确识别出的豆包 PiP window 的 CALayer 渲染设为透明。
+- 双 PiP window 交接期间忽略会被全局活动应用污染的身份，只使用窗口本地 bundle id 或豆包 viewTree 特征。
+- 非豆包 window 如果复用了插件处理过的 window，则恢复 window layer 渲染。
+- 移除临时 250ms 诊断采样和 `[DIAG]`、`[ALPHA]` 高频日志，只保留事件驱动的隐藏与恢复逻辑。
+
+### 1.0.25~debug1
+
+- 保持 1.0.24 的隐藏行为不变。
+- 增加多 PiP 切换期间的 window、bundle id、关键子视图状态和 `setAlpha:` 请求日志，用于定位豆包抢占视频 PiP 后自身持续显示的问题；250ms 状态采样在 SpringBoard 重载 10 分钟后自动停止。
+
+### 1.0.24
+
+- 修复使用相机后系统恢复豆包 PiP 命中层透明度，导致悬浮窗重新出现的问题。
+- 仅当 PiP window 的 bundle id 明确为 `com.bytedance.ios.doubaoime` 时拦截命中层 `setAlpha:`；其他应用及身份未知的 PiP 均原样放行。
+- 移除临时轮询诊断，不增加常驻采样开销。
 
 ### 1.0.23
 
