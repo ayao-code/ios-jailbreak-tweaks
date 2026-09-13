@@ -440,6 +440,27 @@ static BOOL AANCurrentModeMatches(id current, AANNoiseMode target) {
     return NO;
 }
 
+static NSString *AANForegroundBundleID(void) {
+    @try {
+        UIApplication *application = [UIApplication sharedApplication];
+        id frontmostApplication = [application valueForKey:@"_accessibilityFrontMostApplication"];
+        if (!frontmostApplication) {
+            frontmostApplication = [application valueForKey:@"_frontMostApp"];
+        }
+        id bundleID = [frontmostApplication valueForKey:@"bundleIdentifier"];
+        return [bundleID isKindOfClass:[NSString class]] ? bundleID : nil;
+    } @catch (__unused NSException *exception) {
+        return nil;
+    }
+}
+
+static BOOL AANShouldSkipForDouyin(AANNoiseMode targetMode, NSString *reason) {
+    NSString *bundleID = AANForegroundBundleID();
+    BOOL shouldSkip = [bundleID isEqualToString:@"com.ss.iphone.ugc.Aweme"];
+    AANLog(@"foreground check reason=%@ target=%@ bundleID=%@ skipDouyin=%d", reason, AANModeName(targetMode), bundleID ?: @"<unknown>", shouldSkip ? 1 : 0);
+    return shouldSkip;
+}
+
 static AANNoiseMode AANDesiredModeForState(BOOL hasTargetDevice);
 
 static void AANVerifyModeLater(AANNoiseMode targetMode, NSString *reason, NSUInteger attempt, NSTimeInterval delay) {
@@ -460,6 +481,7 @@ static void AANVerifyModeLater(AANNoiseMode targetMode, NSString *reason, NSUInt
             AANLog(@"verify %@ retry skipped reason=%@ desired changed to %@", AANModeName(targetMode), reason, AANModeName(AANDesiredModeForState(device != nil)));
             return;
         }
+        if (AANShouldSkipForDouyin(targetMode, [reason stringByAppendingString:@":verify-retry"])) return;
         id error = nil;
         BOOL ok = NO;
         @try {
@@ -474,6 +496,7 @@ static void AANVerifyModeLater(AANNoiseMode targetMode, NSString *reason, NSUInt
 
 static BOOL AANSetModeIfNeeded(id device, id modeToken, AANNoiseMode targetMode, NSString *reason) {
     if (!device || !modeToken || targetMode == AANNoiseModeNone) return NO;
+    if (AANShouldSkipForDouyin(targetMode, reason)) return NO;
     NSTimeInterval now = AANNow();
     if (now < gSuppressUntil) {
         AANLog(@"skip set %@ reason=%@ suppressed %.1fs", AANModeName(targetMode), reason, gSuppressUntil - now);
@@ -815,7 +838,7 @@ static void AANStart(void) {
     if (!AANResolveMediaRemote()) return;
     AANRegisterNotifications();
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, AANPrefsChanged, (__bridge CFStringRef)kPrefsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-    AANLog(@"AirPodsAutoNoise v1.0.1 started");
+    AANLog(@"AirPodsAutoNoise v1.0.2 started");
     AANReconcile(@"startup");
     AANQueryPlaybackAndReconcile(@"startup-playback");
     AANScheduleStartupReconcile(1.5, @"startup-reconcile-1");

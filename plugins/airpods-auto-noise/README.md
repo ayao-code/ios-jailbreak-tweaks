@@ -2,7 +2,7 @@
 
 AirPods Pro 系列自动降噪稳定版，适用于 iOS 16 Dopamine rootless 环境。
 
-当前版本：v1.0.1
+当前版本：v1.0.2
 
 ## 功能
 
@@ -11,6 +11,7 @@ AirPods Pro 系列自动降噪稳定版，适用于 iOS 16 Dopamine rootless 环
 - 默认戴上/连接 AirPods 不主动开启降噪。
 - 播放开始后立即切主动降噪。
 - 停止播放后立即切通透。
+- 抖音在前台时不自动切换 AirPods 模式。
 
 ## 安全边界
 
@@ -25,6 +26,14 @@ AirPods Pro 系列自动降噪稳定版，适用于 iOS 16 Dopamine rootless 环
 日志路径：`/var/mobile/Library/Logs/AirPodsAutoNoise.log`
 
 日志有大小上限，默认只记录关键状态迁移和错误。
+
+测试版会额外记录每次模式切换前的前台 App 判断结果，方便确认抖音排除逻辑。
+
+## v1.0.2 变更
+
+- 当前前台 App 为抖音 `com.ss.iphone.ugc.Aweme` 时，跳过主动降噪、通透和普通模式切换。
+- 模式切换及 verify 重试前都会检查，避免延迟重试绕过抖音排除。
+- 保留 256 KiB 日志滚动，并增加前台 Bundle ID 与跳过结果日志。
 
 ## v1.0.1 变更
 
