@@ -13,7 +13,6 @@ static NSTimeInterval gLastDeepSeekOpenAt = 0;
 static BOOL gEnabled = YES;
 static BOOL gDoubaoRecording = NO;
 static BOOL gDoubaoReleaseSendPending = NO;
-static BOOL gDoubaoReleasePollActive = NO;
 static BOOL gDeepSeekRecording = NO;
 static BOOL gDeepSeekReleaseSendPending = NO;
 static BOOL gDeepSeekReleasePollActive = NO;
@@ -25,11 +24,11 @@ static const NSTimeInterval kDebounceSeconds = 4.0;
 static NSString * const kPrefsDomain = @"ayao.aipowerbutton";
 static NSString * const kPrefsChangedNotification = @"ayao.aipowerbutton/preferences.changed";
 static NSString * const kDoubaoBundleID = @"com.bot.doubao";
-static NSString * const kDoubaoAudioInputIntentIdentifier = @"FlowOpenMainBotAudioInputHandsfreeAppIntent";
-static NSString * const kDoubaoAudioInputIntentMangledTypeName = @"5Grace43FlowOpenMainBotAudioInputHandsfreeAppIntentV";
 static NSString * const kDeepSeekBundleID = @"com.deepseek.chat";
 static NSString * const kProviderDoubao = @"doubao";
 static NSString * const kProviderDeepSeek = @"deepseek";
+static NSString * const kDoubaoStartNotification = @"ayao.aipowerbutton.doubao.start";
+static NSString * const kDoubaoStopSendNotification = @"ayao.aipowerbutton.doubao.stopSend";
 static NSString * const kDeepSeekStartNotification = @"ayao.aipowerbutton.deepseek.start";
 static NSString * const kDeepSeekStopSendNotification = @"ayao.aipowerbutton.deepseek.stopSend";
 
@@ -46,14 +45,6 @@ static void AYPBProtectSystemPower(void) {
 
 static BOOL AYPBIsProtected(void) {
     return AYPBNow() < gProtectSystemPowerUntil;
-}
-
-static id AYPBAllocInit(Class cls) {
-    if (!cls) {
-        return nil;
-    }
-    id object = ((id (*)(id, SEL))objc_msgSend)(cls, @selector(alloc));
-    return ((id (*)(id, SEL))objc_msgSend)(object, @selector(init));
 }
 
 static id AYPBCopyPreferenceValue(NSString *key) {
@@ -82,7 +73,6 @@ static void AYPBLoadPrefs(void) {
     if (![gProvider isEqualToString:kProviderDoubao]) {
         gDoubaoRecording = NO;
         gDoubaoReleaseSendPending = NO;
-        gDoubaoReleasePollActive = NO;
     }
     NSLog(@"[DoubaoPowerButton] prefs enabled=%d provider=%@ doubaoRecording=%d deepseekRecording=%d", gEnabled, gProvider, gDoubaoRecording, gDeepSeekRecording);
 }
@@ -209,98 +199,42 @@ static void AYPBStartDeepSeekReleasePoll(id actions) {
     AYPBPollDeepSeekRelease(actions, 600);
 }
 
-static void AYPBPerformDoubaoAppIntent(NSString *identifier, NSString *mangledTypeName, BOOL openAppWhenRun) {
-    Class actionClass = NSClassFromString(@"LNAction");
-    Class connectionManagerClass = NSClassFromString(@"LNConnectionManager");
-    Class optionsClass = NSClassFromString(@"LNActionExecutorOptions");
-    Class executorClass = NSClassFromString(@"LNActionExecutor");
-    if (!actionClass || !connectionManagerClass || !optionsClass || !executorClass) {
-        NSLog(@"[DoubaoPowerButton] doubao intent missing LinkServices classes identifier=%@", identifier);
+static void AYPBSendDoubaoFromSpringBoard(NSString *reason) {
+    if (!gDoubaoRecording && !gDoubaoReleaseSendPending) {
         return;
     }
 
-    id actionAlloc = ((id (*)(id, SEL))objc_msgSend)(actionClass, @selector(alloc));
-    id action = ((id (*)(id, SEL, id, id, BOOL, id))objc_msgSend)(
-        actionAlloc,
-        @selector(initWithIdentifier:mangledTypeName:openAppWhenRun:parameters:),
-        identifier,
-        mangledTypeName,
-        openAppWhenRun,
-        @[]
-    );
-    if (!action) {
-        NSLog(@"[DoubaoPowerButton] doubao intent action init failed identifier=%@", identifier);
-        return;
-    }
-
-    SEL sharedSelector = @selector(sharedInstance);
-    if (![connectionManagerClass respondsToSelector:sharedSelector]) {
-        NSLog(@"[DoubaoPowerButton] doubao intent missing connection manager sharedInstance");
-        return;
-    }
-
-    id manager = ((id (*)(id, SEL))objc_msgSend)(connectionManagerClass, sharedSelector);
-    SEL connectionSelector = @selector(connectionForBundleIdentifier:appBundleIdentifier:error:);
-    if (!manager || ![manager respondsToSelector:connectionSelector]) {
-        NSLog(@"[DoubaoPowerButton] doubao intent missing connection selector");
-        return;
-    }
-
-    NSError *error = nil;
-    id connection = ((id (*)(id, SEL, id, id, NSError **))objc_msgSend)(manager, connectionSelector, kDoubaoBundleID, kDoubaoBundleID, &error);
-    if (!connection) {
-        NSLog(@"[DoubaoPowerButton] doubao intent connection failed identifier=%@ error=%@", identifier, error);
-        return;
-    }
-
-    id options = AYPBAllocInit(optionsClass);
-    if (!options) {
-        NSLog(@"[DoubaoPowerButton] doubao intent options init failed identifier=%@", identifier);
-        return;
-    }
-
-    SEL interactionSelector = @selector(setInteractionMode:);
-    if ([options respondsToSelector:interactionSelector]) {
-        ((void (*)(id, SEL, NSInteger))objc_msgSend)(options, interactionSelector, 1);
-    }
-
-    SEL labelSelector = @selector(setClientLabel:);
-    if ([options respondsToSelector:labelSelector]) {
-        ((void (*)(id, SEL, id))objc_msgSend)(options, labelSelector, @"DoubaoPowerButton");
-    }
-
-    SEL donateSelector = @selector(setDonateToTranscript:);
-    if ([options respondsToSelector:donateSelector]) {
-        ((void (*)(id, SEL, BOOL))objc_msgSend)(options, donateSelector, NO);
-    }
-
-    id executorAlloc = ((id (*)(id, SEL))objc_msgSend)(executorClass, @selector(alloc));
-    id executor = ((id (*)(id, SEL, id, id, id))objc_msgSend)(executorAlloc, @selector(initWithAction:connection:options:), action, connection, options);
-    if (!executor) {
-        NSLog(@"[DoubaoPowerButton] doubao intent executor init failed identifier=%@", identifier);
-        return;
-    }
-
-    SEL performSelector = @selector(perform);
-    if (![executor respondsToSelector:performSelector]) {
-        NSLog(@"[DoubaoPowerButton] doubao intent executor missing perform identifier=%@", identifier);
-        return;
-    }
-
-    NSLog(@"[DoubaoPowerButton] doubao intent perform identifier=%@ open=%d", identifier, openAppWhenRun);
-    ((void (*)(id, SEL))objc_msgSend)(executor, performSelector);
-}
-
-static void AYPBPerformDoubaoAudioInput(void) {
-    AYPBPerformDoubaoAppIntent(kDoubaoAudioInputIntentIdentifier, kDoubaoAudioInputIntentMangledTypeName, YES);
+    gDoubaoRecording = NO;
+    gDoubaoReleaseSendPending = NO;
+    AYPBPostDarwinNotification(kDoubaoStopSendNotification);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        AYPBPostDarwinNotification(kDoubaoStopSendNotification);
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        AYPBPostDarwinNotification(kDoubaoStopSendNotification);
+    });
 }
 
 static void AYPBPerformDoubaoAction(void) {
-    NSLog(@"[DoubaoPowerButton] doubao action open audio input");
-    gDoubaoRecording = NO;
-    gDoubaoReleaseSendPending = NO;
-    gDoubaoReleasePollActive = NO;
-    AYPBPerformDoubaoAudioInput();
+    gDoubaoRecording = YES;
+    gDoubaoReleaseSendPending = YES;
+    AYPBOpenApplicationAsync(kDoubaoBundleID);
+    AYPBPostDarwinNotification(kDoubaoStartNotification);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (gDoubaoReleaseSendPending) {
+            AYPBPostDarwinNotification(kDoubaoStartNotification);
+        }
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (gDoubaoReleaseSendPending) {
+            AYPBPostDarwinNotification(kDoubaoStartNotification);
+        }
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (gDoubaoReleaseSendPending) {
+            AYPBPostDarwinNotification(kDoubaoStartNotification);
+        }
+    });
 }
 
 static void AYPBPerformDeepSeekAction(void) {
@@ -364,6 +298,13 @@ static void AYPBPerformDeepSeekAction(void) {
 %end
 
 %hook SBLockHardwareButtonActions
+
+- (void)performFinalButtonUpActions {
+    %orig;
+    if (gEnabled && [gProvider isEqualToString:kProviderDoubao] && gDoubaoReleaseSendPending) {
+        AYPBSendDoubaoFromSpringBoard(@"button released");
+    }
+}
 
 - (void)performLongPressActions {
     if (!gEnabled) {

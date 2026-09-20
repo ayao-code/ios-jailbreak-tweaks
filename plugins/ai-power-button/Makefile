@@ -5,10 +5,14 @@ INSTALL_TARGET_PROCESSES = SpringBoard
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = DoubaoPowerButton DeepSeekVoiceHelper
+TWEAK_NAME = DoubaoPowerButton DoubaoAppVoiceHelper DeepSeekVoiceHelper
 DoubaoPowerButton_FILES = Tweak.xm
 DoubaoPowerButton_CFLAGS = -fobjc-arc
 DoubaoPowerButton_FRAMEWORKS = Foundation UIKit
+
+DoubaoAppVoiceHelper_FILES = DoubaoAppVoiceHelper.xm
+DoubaoAppVoiceHelper_CFLAGS = -fobjc-arc
+DoubaoAppVoiceHelper_FRAMEWORKS = Foundation UIKit CoreGraphics
 
 DeepSeekVoiceHelper_FILES = DeepSeekVoiceHelper.xm
 DeepSeekVoiceHelper_CFLAGS = -fobjc-arc
