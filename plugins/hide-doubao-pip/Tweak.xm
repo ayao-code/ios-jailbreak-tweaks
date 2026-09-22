@@ -1,4 +1,7 @@
 #import <UIKit/UIKit.h>
+#import <dlfcn.h>
+#import <notify.h>
+#import <objc/message.h>
 #import <objc/runtime.h>
 #import <sys/stat.h>
 #import <time.h>
@@ -11,6 +14,28 @@ static NSTimeInterval sLastPiPWindowCountCheckTime = 0;
 static BOOL sLastHasMultipleActivePiPWindows = NO;
 static NSMutableDictionary<NSString *, NSNumber *> *sThrottleTimes = nil;
 static const void *kWindowLayerMutedKey = &kWindowLayerMutedKey;
+static NSString *const kDNJPrepareNotification = @"ayao.hidedoubaopip.visual.prepare";
+static NSString *const kDNJReadyNotification = @"ayao.hidedoubaopip.visual.ready";
+static NSString *const kDNJAudioActiveNotification = @"ayao.hidedoubaopip.visual.audio_active";
+static NSString *const kDNJCompleteNotification = @"ayao.hidedoubaopip.visual.complete";
+static NSString *const kDNJDoubaoBundleIdentifier = @"com.bytedance.ios.doubaoime";
+static const NSTimeInterval kDNJTransitionTimeout = 6.0;
+static const NSTimeInterval kDNJOverlayPresentationDelay = 0.04;
+static const NSTimeInterval kDNJPiPWaitAfterAudio = 0.9;
+static const NSTimeInterval kDNJForwardTransitionFallbackAfterAudio = 1.35;
+static UIWindow *sDNJOverlayWindow = nil;
+static NSString *sDNJReturnBundleIdentifier = nil;
+static NSUInteger sDNJTransitionGeneration = 0;
+static BOOL sDNJTransitionActive = NO;
+static BOOL sDNJAudioActive = NO;
+static BOOL sDNJPiPReady = NO;
+static BOOL sDNJPiPGraceElapsed = NO;
+static BOOL sDNJForwardTransitionFinished = NO;
+static BOOL sDNJReturnStarted = NO;
+static int sDNJPrepareStateToken = 0;
+
+typedef UIImage *(*DNJScreenImageFunction)(void);
+static NSArray<UIWindow *> *SpringBoardWindows(void);
 
 typedef NS_ENUM(NSInteger, DoubaoPiPIdentity) {
     DoubaoPiPIdentityUnknown = 0,
@@ -44,6 +69,364 @@ static void WriteLog(NSString *format, ...) {
     strftime(ts, sizeof(ts), "%H:%M:%S", &timeInfo);
     fprintf(logFile, "[%s] %s\n", ts, msg.UTF8String);
     fflush(logFile);
+}
+
+static void DNJPostNotification(NSString *name) {
+    CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                                         (__bridge CFStringRef)name,
+                                         NULL,
+                                         NULL,
+                                         YES);
+}
+
+static NSString *DNJFrontmostBundleIdentifier(void) {
+    Class userAgentClass = NSClassFromString(@"SBUserAgent");
+    SEL sharedUserAgentSelector = NSSelectorFromString(@"sharedUserAgent");
+    SEL foregroundSelector = NSSelectorFromString(@"foregroundApplicationDisplayID");
+    if ([userAgentClass respondsToSelector:sharedUserAgentSelector]) {
+        id userAgent = ((id (*)(id, SEL))objc_msgSend)(userAgentClass, sharedUserAgentSelector);
+        if ([userAgent respondsToSelector:foregroundSelector]) {
+            NSString *bundleIdentifier = ((id (*)(id, SEL))objc_msgSend)(userAgent, foregroundSelector);
+            if (bundleIdentifier.length > 0) return bundleIdentifier;
+        }
+    }
+
+    id springBoard = UIApplication.sharedApplication;
+    SEL frontmostSelector = NSSelectorFromString(@"_accessibilityFrontMostApplication");
+    if ([springBoard respondsToSelector:frontmostSelector]) {
+        id application = ((id (*)(id, SEL))objc_msgSend)(springBoard, frontmostSelector);
+        SEL bundleSelector = NSSelectorFromString(@"bundleIdentifier");
+        if ([application respondsToSelector:bundleSelector]) {
+            NSString *bundleIdentifier = ((id (*)(id, SEL))objc_msgSend)(application, bundleSelector);
+            if (bundleIdentifier.length > 0) return bundleIdentifier;
+        }
+    }
+    return nil;
+}
+
+static uint64_t DNJBundleIdentifierHash(NSString *bundleIdentifier) {
+    const unsigned char *bytes = (const unsigned char *)bundleIdentifier.UTF8String;
+    if (!bytes) return 0;
+    uint64_t hash = 1469598103934665603ULL;
+    while (*bytes) {
+        hash ^= *bytes++;
+        hash *= 1099511628211ULL;
+    }
+    return hash;
+}
+
+static NSString *DNJBundleIdentifierFromPrepareState(void) {
+    if (sDNJPrepareStateToken == 0) return nil;
+    uint64_t expectedHash = 0;
+    if (notify_get_state(sDNJPrepareStateToken, &expectedHash) != NOTIFY_STATUS_OK || expectedHash == 0) {
+        return nil;
+    }
+
+    Class controllerClass = NSClassFromString(@"SBApplicationController");
+    SEL sharedSelector = NSSelectorFromString(@"sharedInstance");
+    SEL identifiersSelector = NSSelectorFromString(@"allBundleIdentifiers");
+    if (![controllerClass respondsToSelector:sharedSelector]) return nil;
+    id controller = ((id (*)(id, SEL))objc_msgSend)(controllerClass, sharedSelector);
+    if (![controller respondsToSelector:identifiersSelector]) return nil;
+    NSArray *bundleIdentifiers = ((id (*)(id, SEL))objc_msgSend)(controller, identifiersSelector);
+    for (id value in bundleIdentifiers) {
+        if (![value isKindOfClass:NSString.class]) continue;
+        NSString *bundleIdentifier = value;
+        if (DNJBundleIdentifierHash(bundleIdentifier) == expectedHash) return bundleIdentifier;
+    }
+    return nil;
+}
+
+static UIWindowScene *DNJActiveWindowScene(void) {
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:UIWindowScene.class]) continue;
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState == UISceneActivationStateForegroundActive ||
+            windowScene.activationState == UISceneActivationStateForegroundInactive) {
+            return windowScene;
+        }
+    }
+    return nil;
+}
+
+static void DNJRemoveOverlay(NSString *reason) {
+    if (sDNJOverlayWindow) {
+        sDNJOverlayWindow.hidden = YES;
+        sDNJOverlayWindow.rootViewController = nil;
+        sDNJOverlayWindow = nil;
+    }
+    WriteLog(@"[VISUAL] overlay removed reason=%@", reason ?: @"unknown");
+}
+
+static void DNJFinishTransition(NSString *reason) {
+    if (!sDNJTransitionActive) return;
+    sDNJTransitionActive = NO;
+    sDNJAudioActive = NO;
+    sDNJPiPReady = NO;
+    sDNJPiPGraceElapsed = NO;
+    sDNJForwardTransitionFinished = NO;
+    sDNJReturnStarted = NO;
+    sDNJReturnBundleIdentifier = nil;
+    DNJRemoveOverlay(reason);
+    DNJPostNotification(kDNJCompleteNotification);
+}
+
+static void DNJReturnToSpotlight(NSString *reason) {
+    if (!sDNJTransitionActive || sDNJReturnStarted) return;
+    sDNJReturnStarted = YES;
+    NSUInteger generation = sDNJTransitionGeneration;
+    WriteLog(@"[VISUAL] spotlight exempt return begin reason=%@ generation=%lu",
+             reason ?: @"unknown",
+             (unsigned long)generation);
+
+    id springBoard = UIApplication.sharedApplication;
+    SEL dismissSpotlightSelector = NSSelectorFromString(@"_dismissSpotlightWithHomeButtonEvent");
+    SEL homeSelector = NSSelectorFromString(@"_simulateHomeButtonPress");
+    BOOL homeRequested = NO;
+    if ([springBoard respondsToSelector:dismissSpotlightSelector]) {
+        ((void (*)(id, SEL))objc_msgSend)(springBoard, dismissSpotlightSelector);
+        homeRequested = YES;
+    } else if ([springBoard respondsToSelector:homeSelector]) {
+        ((void (*)(id, SEL))objc_msgSend)(springBoard, homeSelector);
+        homeRequested = YES;
+    } else {
+        Class uiControllerClass = NSClassFromString(@"SBUIController");
+        SEL sharedSelector = NSSelectorFromString(@"sharedInstance");
+        SEL clickSelector = NSSelectorFromString(@"clickedMenuButton");
+        if ([uiControllerClass respondsToSelector:sharedSelector]) {
+            id uiController = ((id (*)(id, SEL))objc_msgSend)(uiControllerClass, sharedSelector);
+            if ([uiController respondsToSelector:clickSelector]) {
+                ((BOOL (*)(id, SEL))objc_msgSend)(uiController, clickSelector);
+                homeRequested = YES;
+            }
+        }
+    }
+    if (!homeRequested) {
+        DNJFinishTransition(@"spotlight_home_unavailable");
+        return;
+    }
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        if (generation == sDNJTransitionGeneration && sDNJTransitionActive) {
+            DNJFinishTransition(@"spotlight_exempt_home");
+        }
+    });
+}
+
+static void DNJReturnToSource(NSString *reason) {
+    if (!sDNJTransitionActive || sDNJReturnStarted) return;
+    NSString *bundleIdentifier = sDNJReturnBundleIdentifier;
+    if (bundleIdentifier.length == 0 || [bundleIdentifier isEqualToString:kDNJDoubaoBundleIdentifier]) {
+        DNJFinishTransition(@"invalid_return_target");
+        return;
+    }
+
+    if ([bundleIdentifier isEqualToString:@"com.apple.Spotlight"]) {
+        DNJReturnToSpotlight(reason);
+        return;
+    }
+
+    sDNJReturnStarted = YES;
+    NSUInteger generation = sDNJTransitionGeneration;
+    WriteLog(@"[VISUAL] return begin bundle=%@ reason=%@ generation=%lu",
+             bundleIdentifier,
+             reason ?: @"unknown",
+             (unsigned long)generation);
+
+    Class serviceClass = NSClassFromString(@"FBSSystemService");
+    SEL sharedSelector = NSSelectorFromString(@"sharedService");
+    SEL openSelector = NSSelectorFromString(@"openApplication:options:withResult:");
+    if (![serviceClass respondsToSelector:sharedSelector]) {
+        DNJFinishTransition(@"frontboard_unavailable");
+        return;
+    }
+
+    id service = ((id (*)(id, SEL))objc_msgSend)(serviceClass, sharedSelector);
+    if (![service respondsToSelector:openSelector]) {
+        DNJFinishTransition(@"open_application_unavailable");
+        return;
+    }
+
+    void (^result)(void) = ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (generation != sDNJTransitionGeneration || !sDNJTransitionActive) return;
+            WriteLog(@"[VISUAL] return request accepted generation=%lu",
+                     (unsigned long)generation);
+        });
+    };
+    ((void (*)(id, SEL, NSString *, NSDictionary *, void (^)(void)))objc_msgSend)(service,
+                                                                                  openSelector,
+                                                                                  bundleIdentifier,
+                                                                                  @{},
+                                                                                  result);
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        if (generation == sDNJTransitionGeneration && sDNJTransitionActive) {
+            DNJFinishTransition(@"return_transaction_timeout");
+        }
+    });
+}
+
+static void DNJMaybeReturnToSource(NSString *reason) {
+    if (!sDNJTransitionActive ||
+        !sDNJAudioActive ||
+        !sDNJForwardTransitionFinished ||
+        (!sDNJPiPReady && !sDNJPiPGraceElapsed)) {
+        return;
+    }
+    DNJReturnToSource(reason);
+}
+
+static UIImage *DNJCaptureVisibleWindows(void) {
+    CGSize size = UIScreen.mainScreen.bounds.size;
+    UIGraphicsBeginImageContextWithOptions(size, YES, UIScreen.mainScreen.scale);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    if (!context) {
+        UIGraphicsEndImageContext();
+        return nil;
+    }
+
+    NSArray<UIWindow *> *windows = SpringBoardWindows();
+    for (UIWindow *window in windows) {
+        if (window.hidden || window.alpha <= 0.01 || window == sDNJOverlayWindow) continue;
+        CGContextSaveGState(context);
+        CGContextConcatCTM(context, window.transform);
+        [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:NO];
+        CGContextRestoreGState(context);
+    }
+    UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return snapshot;
+}
+
+static void DNJShowOverlay(void) {
+    DNJScreenImageFunction screenImage = (DNJScreenImageFunction)dlsym(RTLD_DEFAULT, "UIGetScreenImage");
+    UIImage *snapshot = screenImage ? screenImage() : DNJCaptureVisibleWindows();
+    if (!snapshot) return;
+
+    UIViewController *controller = [UIViewController new];
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    imageView.image = snapshot;
+    imageView.contentMode = UIViewContentModeScaleToFill;
+    controller.view = imageView;
+
+    UIWindow *window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    UIWindowScene *windowScene = DNJActiveWindowScene();
+    if (windowScene) window.windowScene = windowScene;
+    window.rootViewController = controller;
+    window.windowLevel = UIWindowLevelAlert + 1000.0;
+    window.userInteractionEnabled = NO;
+    window.hidden = NO;
+    sDNJOverlayWindow = window;
+}
+
+static void DNJPrepareCallback(CFNotificationCenterRef center,
+                               void *observer,
+                               CFStringRef name,
+                               const void *object,
+                               CFDictionaryRef userInfo) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (sDNJTransitionActive) {
+            DNJPostNotification(kDNJReadyNotification);
+            return;
+        }
+
+        NSString *frontmost = DNJBundleIdentifierFromPrepareState();
+        if (frontmost.length == 0) frontmost = DNJFrontmostBundleIdentifier();
+        if (frontmost.length == 0 || [frontmost isEqualToString:kDNJDoubaoBundleIdentifier]) {
+            WriteLog(@"[VISUAL] prepare rejected frontmost=%@", frontmost ?: @"nil");
+            DNJPostNotification(kDNJReadyNotification);
+            return;
+        }
+
+        NSUInteger generation = ++sDNJTransitionGeneration;
+        sDNJTransitionActive = YES;
+        sDNJAudioActive = NO;
+        sDNJPiPReady = NO;
+        sDNJPiPGraceElapsed = NO;
+        sDNJForwardTransitionFinished = NO;
+        sDNJReturnStarted = NO;
+        sDNJReturnBundleIdentifier = [frontmost copy];
+        DNJShowOverlay();
+        WriteLog(@"[VISUAL] prepare source=%@ overlay=%d generation=%lu",
+                 frontmost,
+                 sDNJOverlayWindow != nil,
+                 (unsigned long)generation);
+        NSTimeInterval readyDelay = sDNJOverlayWindow ? kDNJOverlayPresentationDelay : 0.0;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(readyDelay * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (generation == sDNJTransitionGeneration && sDNJTransitionActive) {
+                DNJPostNotification(kDNJReadyNotification);
+            }
+        });
+
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kDNJTransitionTimeout * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (generation != sDNJTransitionGeneration || !sDNJTransitionActive) return;
+            NSString *current = DNJFrontmostBundleIdentifier();
+            if ([current isEqualToString:kDNJDoubaoBundleIdentifier]) {
+                DNJReturnToSource(@"transition_timeout");
+            } else {
+                DNJFinishTransition(@"transition_timeout_no_doubao");
+            }
+        });
+    });
+}
+
+static void DNJAudioActiveCallback(CFNotificationCenterRef center,
+                                   void *observer,
+                                   CFStringRef name,
+                                   const void *object,
+                                   CFDictionaryRef userInfo) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!sDNJTransitionActive) return;
+        NSUInteger generation = sDNJTransitionGeneration;
+        sDNJAudioActive = YES;
+        WriteLog(@"[VISUAL] audio active generation=%lu", (unsigned long)generation);
+        DNJMaybeReturnToSource(@"audio_and_pip_ready");
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kDNJPiPWaitAfterAudio * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (generation == sDNJTransitionGeneration && sDNJTransitionActive && sDNJAudioActive) {
+                sDNJPiPGraceElapsed = YES;
+                WriteLog(@"[VISUAL] pip grace elapsed generation=%lu", (unsigned long)generation);
+                DNJMaybeReturnToSource(@"audio_ready_pip_grace");
+            }
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kDNJForwardTransitionFallbackAfterAudio * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (generation != sDNJTransitionGeneration ||
+                !sDNJTransitionActive ||
+                !sDNJAudioActive ||
+                sDNJReturnStarted ||
+                sDNJForwardTransitionFinished) {
+                return;
+            }
+            sDNJForwardTransitionFinished = YES;
+            WriteLog(@"[VISUAL] forward transition fallback generation=%lu",
+                     (unsigned long)generation);
+            DNJMaybeReturnToSource(@"forward_transition_fallback");
+        });
+    });
+}
+
+static void DNJInstallVisualTransitionBridge(void) {
+    notify_register_check(kDNJPrepareNotification.UTF8String, &sDNJPrepareStateToken);
+    CFNotificationCenterRef center = CFNotificationCenterGetDarwinNotifyCenter();
+    CFNotificationCenterAddObserver(center,
+                                    NULL,
+                                    DNJPrepareCallback,
+                                    (__bridge CFStringRef)kDNJPrepareNotification,
+                                    NULL,
+                                    CFNotificationSuspensionBehaviorDeliverImmediately);
+    CFNotificationCenterAddObserver(center,
+                                    NULL,
+                                    DNJAudioActiveCallback,
+                                    (__bridge CFStringRef)kDNJAudioActiveNotification,
+                                    NULL,
+                                    CFNotificationSuspensionBehaviorDeliverImmediately);
+    WriteLog(@"[VISUAL] bridge installed=1");
 }
 
 static BOOL ShouldRunThrottled(NSString *key, NSTimeInterval interval) {
@@ -310,7 +693,9 @@ static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
     BOOL changed = NO;
     CGFloat beforeWindowOpacity = window.layer.opacity;
     CGFloat beforeHitOpacity = hitView ? hitView.layer.opacity : -1.0;
-    BOOL shouldMuteWindowLayer = HasExplicitDoubaoIdentity(window, NO);
+    BOOL explicitDoubao = HasExplicitDoubaoIdentity(window, NO);
+    BOOL transitionCandidate = sDNJTransitionActive && !explicitDoubao;
+    BOOL shouldMuteWindowLayer = explicitDoubao || transitionCandidate;
     if (shouldMuteWindowLayer && beforeWindowOpacity > 0.01) changed = YES;
     if (hitView && beforeHitOpacity > 0.01) changed = YES;
     if (shouldMuteWindowLayer) {
@@ -330,11 +715,12 @@ static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
     }
 
     if (changed || ShouldRunThrottled([NSString stringWithFormat:@"hide-sample-%p", window], 30.0)) {
-        WriteLog(@"[HIDE] reason=%@ mode=windowLayerHitContent changed=%d bundle=%@ explicit=%d windowOpacity=%.3f->%.3f hitOpacity=%.3f->%.3f restoredTargets=%lu targets=%lu windowAlpha=%.3f windowHidden=%d",
+        WriteLog(@"[HIDE] reason=%@ mode=windowLayerHitContent changed=%d bundle=%@ explicit=%d transitionCandidate=%d windowOpacity=%.3f->%.3f hitOpacity=%.3f->%.3f restoredTargets=%lu targets=%lu windowAlpha=%.3f windowHidden=%d",
                  reason ?: @"unknown",
                  changed,
                  BundleIDFromPiPWindow(window) ?: @"nil",
-                 shouldMuteWindowLayer,
+                 explicitDoubao,
+                 transitionCandidate,
                  beforeWindowOpacity,
                  window.layer.opacity,
                  beforeHitOpacity,
@@ -343,6 +729,13 @@ static void HideSingleDoubaoWindow(UIWindow *window, NSString *reason) {
                  (unsigned long)targets.count,
                  window.alpha,
                  window.hidden);
+    }
+    if (sDNJTransitionActive && !sDNJPiPReady) {
+        sDNJPiPReady = YES;
+        WriteLog(@"[VISUAL] pip ready reason=%@ generation=%lu",
+                 reason ?: @"unknown",
+                 (unsigned long)sDNJTransitionGeneration);
+        DNJMaybeReturnToSource(@"audio_and_pip_ready");
     }
 }
 
@@ -478,6 +871,43 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 
 %end
 
+%hook SBAppToAppWorkspaceTransaction
+
+- (void)_didComplete {
+    %orig;
+    if (!sDNJTransitionActive) return;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!sDNJTransitionActive) return;
+        NSString *frontmost = DNJFrontmostBundleIdentifier();
+        if (sDNJReturnStarted) {
+            if (sDNJReturnBundleIdentifier.length == 0 ||
+                [sDNJReturnBundleIdentifier isEqualToString:@"com.apple.Spotlight"] ||
+                ![frontmost isEqualToString:sDNJReturnBundleIdentifier]) {
+                return;
+            }
+            WriteLog(@"[VISUAL] return app-to-app transaction completed bundle=%@ generation=%lu",
+                     frontmost,
+                     (unsigned long)sDNJTransitionGeneration);
+            DNJFinishTransition(@"return_app_to_app_completed");
+            return;
+        }
+
+        if (sDNJForwardTransitionFinished ||
+            ![frontmost isEqualToString:kDNJDoubaoBundleIdentifier]) {
+            return;
+        }
+
+        sDNJForwardTransitionFinished = YES;
+        WriteLog(@"[VISUAL] forward app-to-app transaction completed generation=%lu",
+                 (unsigned long)sDNJTransitionGeneration);
+        DNJMaybeReturnToSource(@"forward_app_to_app_completed");
+    });
+}
+
+%end
+
 %ctor {
-    WriteLog(@"[INIT] HideDoubaoPiP v1.0.25 window-layer-hide-release");
+    DNJInstallVisualTransitionBridge();
+    WriteLog(@"[INIT] HideDoubaoPiP v1.0.30 bidirectional-transaction-gate");
 }

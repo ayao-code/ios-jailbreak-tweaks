@@ -28,11 +28,11 @@
 
 路径：[`plugins/hide-doubao-pip`](plugins/hide-doubao-pip)
 
-适用于 iOS 16 Dopamine rootless 越狱环境。安装后仅隐藏豆包输入法创建的 PiP 悬浮窗，通过透明化渲染层保留 PiP 会话并避免干预正常视频 PiP。
+适用于 iOS 16 Dopamine rootless 越狱环境。安装后隐藏豆包输入法创建的 PiP 悬浮窗，通过透明化渲染层保留 PiP 会话；冷启动必须短暂前台激活豆包时，使用双向 App-to-App 事务遮罩隐藏切换并返回原应用。
 
-当前稳定版为 `1.0.25`；带 `~debug` 后缀的安装包仅用于限定时间的故障定位，不作为正式稳定版。
+当前稳定版为 `1.0.30`；除隐藏豆包 PiP 和启用原生失效恢复外，还在冷启动语音时使用当前界面截图遮罩，等待前向语音会话与反向返回事务完整完成后再撤罩，使文字回传和松键停止继续走豆包原生链路。带 `~test` 或 `~debug` 后缀的安装包仅用于故障定位，不作为正式稳定版。
 
-- 只注入 SpringBoard，只处理系统 PiP 窗口。
+- SpringBoard 模块只处理系统 PiP 窗口；无跳转模块只注入豆包主 App 与键盘扩展。
 - 优先通过豆包输入法 bundle/process 识别目标 PiP。
 - bundle 信息缺失时使用保守的 PiP 视图结构兜底识别。
 - 稳定版不包含右侧停靠、缩放、常驻 watchdog 或持续诊断采样。
@@ -81,6 +81,8 @@ plugins/
 │   ├── control
 │   ├── Tweak.xm
 │   ├── HideDoubaoPiP.plist
+│   ├── DoubaoNoJump.xm
+│   ├── DoubaoNoJump.plist
 │   ├── changelog
 │   └── packages/
 ├── photos-recents-sort/

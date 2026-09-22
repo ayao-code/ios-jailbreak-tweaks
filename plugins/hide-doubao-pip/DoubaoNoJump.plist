@@ -1,0 +1,8 @@
+{
+    Filter = {
+        Bundles = (
+            "com.bytedance.ios.doubaoime",
+            "com.bytedance.ios.doubaoime.keyboardExtension"
+        );
+    };
+}
