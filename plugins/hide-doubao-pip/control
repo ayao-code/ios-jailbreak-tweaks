@@ -1,8 +1,8 @@
 Package: ayao.hidedoubaopip
 Name: Hide Doubao PiP
-Version: 1.0.25
+Version: 1.0.30
 Architecture: iphoneos-arm64
-Description: 隐藏豆包输入法画中画悬浮窗，保留正常视频画中画功能。仅对豆包输入法生效，不影响系统及其他应用。
+Description: 隐藏豆包输入法 PiP；冷启动语音使用双向事务遮罩返回原应用，Spotlight 安全返回桌面。
 Maintainer: ayao
 Author: ayao
 Section: Tweaks

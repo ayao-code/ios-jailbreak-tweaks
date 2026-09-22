@@ -1,16 +1,24 @@
 # HideDoubaoPiP
 
-适用于 iOS 16 Dopamine rootless 越狱环境的 SpringBoard PiP 隐藏插件。安装后仅针对豆包输入法创建的 PiP 悬浮窗隐藏 UI，同时保留系统对该 PiP 的窗口和命中容器认知，让豆包 PiP 仍能正常抢占/挤掉微信等其他应用的视频 PiP。
+适用于 iOS 16 Dopamine rootless 越狱环境的豆包输入法 PiP 插件。安装后仅针对豆包输入法创建的 PiP 悬浮窗隐藏 UI；冷启动必须短暂前台激活豆包时，通过双向 App-to-App 事务遮罩隐藏切换，并保留豆包原生语音识别、文字回传和松键停止链路。
 
 ## 功能
 
-- 只注入 SpringBoard。
+- PiP 隐藏模块只注入 SpringBoard；无跳转模块只注入豆包主 App 与键盘扩展。
 - 只处理系统 `SBPictureInPictureWindow`。
 - 优先通过豆包输入法 bundle id `com.bytedance.ios.doubaoime` 识别目标 PiP。
 - bundle/process 信息尚未挂载时，用豆包 PiP 的 viewTree 特征兜底；不对明确识别出的非豆包 PiP 执行动作。
 - Bundle ID 明确为豆包后，将整个 `SBPictureInPictureWindow` 的 CALayer 渲染设为透明，但不结束 PiP 会话、不调用系统 stash、不移动 PiP frame。
 - 保留 `PGHitTestExtendableView` 作为系统可见的 PiP 命中容器，只将其 CALayer 渲染透明，并隐藏内部内容/控制层。
 - 通过 PiP window 和少量内部 layout 触发点重新应用隐藏，处理系统 layout 后恢复显示的问题。
+- 只在豆包主 App 和键盘扩展内启用原生 `PiP not ready` 恢复及跳转修复，不伪造就绪状态、不拦截其他 URL。
+- 仅当键盘准备打开 `oime://start_asr_from_keyboard` 时发送后台事件；SpringBoard 后台启动豆包并通过 `prepare → ready → request → ack` 事件握手避免冷启动丢事件。
+- 冷启动必须短暂前台激活豆包时，先显示当前界面截图遮罩一帧再放行跳转，减少豆包界面闪现。
+- 本次语音转场中新创建且 bundle 尚未挂载的豆包特征 PiP 会提前隐藏整个 window layer，避免悬浮窗先出现再消失；非本次转场和明确非豆包 PiP 不受影响。
+- 从 Spotlight 发起时不尝试恢复其临时搜索控制器，而是使用系统 Home 关闭路径回到桌面，避免只剩全屏模糊背景。
+- 只有主 App 成功激活录音音频会话后才确认接管并阻止前台跳转；5.5 秒内未确认则恢复原始 URL 行为，避免语音不可用。
+- 录音期间继续持有短时执行权，使文字回传和松键停止沿用豆包原生 IPC；音频会话停用时立即释放，并设置 120 秒安全上限。
+- 完全事件驱动，不新增轮询或常驻后台任务；仅使用启动、回退和安全释放的一次性超时。
 - 保留 `/var/mobile/Documents/PiPArrowHide.log` 低频运行日志，达到 256KB 后截断重写。
 
 ## 兼容环境
@@ -22,9 +30,9 @@
 
 ## 安装
 
-下载 `ayao.hidedoubaopip_1.0.25_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard。
+下载 `ayao.hidedoubaopip_1.0.30_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard，并重新打开一次豆包输入法。
 
-仓库内对应安装包路径：`plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.25_iphoneos-arm64.deb`。
+仓库内对应安装包路径：`plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.30_iphoneos-arm64.deb`。
 
 > 如果设备上已经安装旧包 `com.dada.hidedoubaopip`，请先卸载旧包后再安装新版；新版 package id 为 `ayao.hidedoubaopip`。
 
@@ -35,6 +43,54 @@ THEOS=/path/to/theos HDBP_DEBUG_LOGS=0 FINALPACKAGE=1 make clean package
 ```
 
 ## 版本说明
+
+### 1.0.30
+
+- 监听 `SBAppToAppWorkspaceTransaction._didComplete`，只在豆包已成为前台且 App-to-App 事务完整结束后返回原 App。
+- 返回条件为“音频已激活 + 前向事务已完成 + PiP 已就绪或 0.9 秒宽限已结束”，避免在第一次切换动画中途反向切换。
+- 若系统未回调事务完成事件，音频激活 1.35 秒后按原稳定路径短兜底返回，避免静态遮罩持续到 6 秒总超时。
+- 返回原 App 后继续等待反向 App-to-App 事务完成，再撤掉遮罩；不再按打开请求回调后的固定 0.18 秒提前撤罩。
+- 若反向事务完成事件漏失，1 秒后自动撤罩，避免界面被长期遮挡。
+- 继续使用高层截图遮罩和转场期 PiP 整窗预隐藏；不新增轮询、常驻任务或声音控制。
+- 正式版固化已验证的 `1.0.30~test26` 行为，不包含后续键盘区域开孔实验。
+
+### 1.0.30~test21
+
+- Spotlight 语音完成后不再恢复已失效的搜索控制器，改为系统 Home 关闭路径返回桌面，避免全屏模糊。
+- 遮罩显示后延迟 40ms 再启动豆包，使遮罩先完成一帧提交，降低冷启动界面瞬间闪现。
+- 本次语音转场内，对 bundle 尚未挂载但已符合豆包结构的 PiP 提前隐藏整个 window layer，减少悬浮窗闪现。
+- 音频激活但 PiP 回调延迟时的兜底等待由 1.2 秒缩短为 0.9 秒；未增加轮询、后台任务或音频控制。
+
+### 1.0.29
+
+- 修复 1.0.28 在主 App 确认路由后立即释放执行权，导致后续文字无法回传、松开空格无法停止的问题。
+- 只有原生 `AVAudioSession` 成功激活后才向键盘确认接管，避免把“已调用路由”误判为“录音已可用”。
+- 录音期间维持豆包主 App 的短时执行权，继续使用原生 `app2key.asrGetResult`、`key2app.sendFinishAudio` 和 `key2app.stopASR` 链路。
+- 原生音频会话停用时立即通知 SpringBoard 释放执行权，并保留 120 秒安全上限，防止异常情况下长期持有。
+- 保持无前台激活和事件驱动；不增加轮询、常驻定时器或永久后台保活。
+
+### 1.0.28
+
+- 修复豆包主进程被 RunningBoard 冻结后无法接收 Darwin 事件、最终仍回退前台跳转的问题。
+- 键盘请求到达时，由 SpringBoard 在不激活界面的情况下启动或恢复豆包，再申请最长 5 秒的 `TransientWakeup` 执行断言。
+- 通过 `prepare → ready → request → ack` 事件握手处理冷启动监听注册竞态，避免语音请求在主 App 初始化前丢失。
+- 收到主 App确认或超时后立即释放断言；没有轮询、常驻定时器或长期后台保活。
+- 仍只拦截 `oime://start_asr_from_keyboard`，唤醒或接管失败时在 5.5 秒后恢复豆包原始行为。
+
+### 1.0.27
+
+- 新增键盘扩展到后台豆包主进程的 Darwin 事件桥。
+- 后台主进程直接复用豆包原生 `handleStartASRByOpenURL`，不依赖前台激活来启动语音。
+- 只有收到主进程确认才取消 URL 跳转；500ms 无确认自动回退原始行为，避免语音不可用。
+- 仅拦截语音启动 URL，不影响设置页、反馈页、用户主动打开豆包或其他 App。
+
+### 1.0.26
+
+- 增加豆包主 App/键盘扩展侧的原生无跳转恢复修复。
+- 强制开启 `enablePiPNotReadyForceRecovery`，让失效 PiP 会话由豆包自身重建，而不是回退到前台拉起。
+- 强制关闭 `disableJumpFix`，确保豆包自带的跳转修复持续生效。
+- 不强制返回“PiP 已就绪”，避免真实会话失效时出现不跳转但无法录音。
+- 不拦截用户主动打开豆包，也不影响其他 URL Scheme、应用或视频 PiP。
 
 ### 1.0.25
 

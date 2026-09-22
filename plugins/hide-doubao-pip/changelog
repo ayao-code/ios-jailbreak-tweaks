@@ -1,3 +1,64 @@
+HideDoubaoPiP v1.0.30
+
+主要作用：前向和反向 App-to-App 转场都以完整事务结束事件为准，避免返回原 App 的动画尚未结束就提前撤罩。
+
+- 监听 `SBAppToAppWorkspaceTransaction._didComplete`，仅在当前前台已是豆包时记录前向事务完成。
+- 音频激活、前向事务完成，以及 PiP 就绪或 0.9 秒宽限三个条件满足后才返回。
+- 若事务完成回调漏失，音频激活 1.35 秒后标记短兜底并按稳定路径返回，不再等待 6 秒总超时。
+- 返回原 App 时继续等待反向 App-to-App 事务完成，并确认前台 bundle 已恢复为来源 App 后再撤罩。
+- 删除打开请求回调后的固定 0.18 秒撤罩；反向事务事件漏失时保留 1 秒安全兜底。
+- 删除临时事务方法枚举日志，不新增轮询、后台任务、音频播放或音量控制。
+- 正式版固化已验证的 `1.0.30~test26` 行为，不包含后续键盘区域开孔实验。
+
+HideDoubaoPiP v1.0.30~test21
+
+主要作用：优化冷启动语音的视觉转场，并对 Spotlight 使用安全回桌面豁免。
+
+- 遮罩显示后等待 40ms 再放行豆包 URL，降低冷启动时豆包界面瞬间闪现。
+- 本次语音转场中新出现、bundle 尚未挂载但符合豆包结构的 PiP 会提前隐藏整个 window layer，降低悬浮窗闪现概率。
+- 音频会话已激活但 PiP 回调延迟时，兜底等待由 1.2 秒缩短为 0.9 秒，减少可感知停顿。
+- Spotlight 不再尝试恢复失效搜索控制器，改用系统 Home 关闭路径回到桌面，避免全屏模糊。
+- 不新增轮询、常驻任务、音频播放或音量控制；普通 App 仍返回原 App。
+
+HideDoubaoPiP v1.0.29
+
+主要作用：在不激活豆包前台的同时，维持完整原生语音会话，修复 1.0.28 无文字回传且松开空格无法停止的问题。
+
+- 不再把主 App 已调用语音路由视为接管成功；仅在原生 `AVAudioSession` 成功激活后向键盘确认。
+- 录音期间继续持有 SpringBoard 申请的短时执行权，使 `app2key.asrGetResult`、`key2app.sendFinishAudio` 和 `key2app.stopASR` 原生 IPC 可以持续工作。
+- 原生音频会话停用时立即释放执行权，并设置 120 秒安全上限，避免异常情况下长期占用。
+- 保留 `prepare → ready → request → ack` 冷启动握手和 5.5 秒失败回退，只拦截 `oime://start_asr_from_keyboard`。
+- 全程事件驱动，不增加轮询、常驻定时器或永久后台保活。
+
+HideDoubaoPiP v1.0.28
+
+主要作用：修复豆包主进程进入 RunningBoard 冻结态后收不到后台语音事件的问题，同时保持无前台激活和事件驱动。
+
+- 键盘请求先发送给 SpringBoard，由 SpringBoard 在不激活界面的情况下启动或恢复豆包，再申请一次最长 5 秒的 `TransientWakeup` 短时执行断言。
+- 通过 `prepare → ready → request → ack` 事件握手避免冷启动时监听尚未注册导致的请求丢失；主进程确认后立即释放断言。
+- 超时同样释放断言，键盘在 5.5 秒无确认时恢复原始 URL 跳转，避免语音不可用。
+- 不新增轮询、常驻定时器或长期保活，只处理 `oime://start_asr_from_keyboard`。
+
+HideDoubaoPiP v1.0.27
+
+主要作用：在豆包原生 NoJump IPC 失效并准备打开 `oime://start_asr_from_keyboard` 时，由后台主 App直接接管语音启动，避免主 App进入前台。
+
+- 键盘扩展仅拦截 `oime://start_asr_from_keyboard`，其他 URL 和用户主动打开豆包全部原样放行。
+- 通过 Darwin 通知将启动请求交给仍由 PiP 保持的豆包主进程，主进程直接调用原生 `MainAppASRManager.handleStartASRByOpenURL`。
+- 主进程成功接管后返回确认，键盘不再执行 URL 前台跳转。
+- 500ms 内没有收到确认时自动执行豆包原始 URL 路径，保证异常情况下仍可使用语音输入。
+- 保留 1.0.26 的原生 PiP 未就绪恢复与跳转修复开关，不增加轮询或定时保活。
+
+HideDoubaoPiP v1.0.26
+
+主要作用：修复悬浮窗模式使用一段时间后，再次语音输入会把豆包输入法主 App 拉到前台的问题。
+
+- 新增 `DoubaoNoJump` 模块，只注入豆包输入法主 App 与键盘扩展。
+- 保持用户选择的 `floating_window` 无跳转模式，不伪造 PiP 已就绪状态。
+- 强制开启豆包内置的 PiP 未就绪恢复逻辑，让旧会话失效时走原生拆除和重建流程。
+- 强制保持豆包内置跳转修复启用，避免云配置关闭修复后回退到前台拉起。
+- 仅覆盖两个豆包专用 Swift 配置 getter，不拦截其他 URL，不创建轮询、定时器或后台保活任务。
+
 HideDoubaoPiP v1.0.25
 
 主要作用：保留豆包对 PiP 会话的正常抢占，只隐藏豆包 PiP window 的完整渲染内容。
