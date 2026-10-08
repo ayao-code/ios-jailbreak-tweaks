@@ -1,0 +1,9 @@
+Package: com.ayao.cr3companion
+Name: CR3 Companion
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: 在越狱 iPhone 上将佳能 CR3 转换为高质量 sRGB Q100 伴生 JPEG。
+Maintainer: ayao
+Author: ayao
+Section: Utilities
+Depends: firmware (>= 16.0)
