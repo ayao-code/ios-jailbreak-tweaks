@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>items</key>
+    <array>
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>label</key>
+            <string>Photos 增强</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>default</key>
+            <true/>
+            <key>defaults</key>
+            <string>ayao.photosrecentssort</string>
+            <key>key</key>
+            <string>enabled</string>
+            <key>label</key>
+            <string>总开关</string>
+            <key>PostNotification</key>
+            <string>ayao.photosrecentssort/preferences.changed</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>default</key>
+            <true/>
+            <key>defaults</key>
+            <string>ayao.photosrecentssort</string>
+            <key>key</key>
+            <string>galleryCleanEnabled</string>
+            <key>label</key>
+            <string>图库清爽模式</string>
+            <key>PostNotification</key>
+            <string>ayao.photosrecentssort/preferences.changed</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>default</key>
+            <false/>
+            <key>defaults</key>
+            <string>ayao.photosrecentssort</string>
+            <key>key</key>
+            <string>recentsTimeSortEnabled</string>
+            <key>label</key>
+            <string>最近项目时间排序</string>
+            <key>PostNotification</key>
+            <string>ayao.photosrecentssort/preferences.changed</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>default</key>
+            <false/>
+            <key>defaults</key>
+            <string>ayao.photosrecentssort</string>
+            <key>key</key>
+            <string>skipDeleteConfirmationEnabled</string>
+            <key>label</key>
+            <string>删除无需确认</string>
+            <key>PostNotification</key>
+            <string>ayao.photosrecentssort/preferences.changed</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>default</key>
+            <true/>
+            <key>defaults</key>
+            <string>ayao.photosrecentssort</string>
+            <key>key</key>
+            <string>cr3PreviewEnabled</string>
+            <key>label</key>
+            <string>CR3 预览兼容</string>
+            <key>PostNotification</key>
+            <string>ayao.photosrecentssort/preferences.changed</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>footerText</key>
+            <string>CR3 预览兼容：在五列附近网格和全屏查看时显示 CR3 内嵌预览图；最密集网格仍可能显示白框，以保证缩放和滚动流畅。总开关关闭时，所有增强功能一并停用。</string>
+        </dict>
+        <dict>
+            <key>action</key>
+            <string>respringTapped</string>
+            <key>cell</key>
+            <string>PSButtonCell</string>
+            <key>isDestructive</key>
+            <true/>
+            <key>label</key>
+            <string>重启桌面</string>
+        </dict>
+    </array>
+    <key>title</key>
+    <string>Photos 增强</string>
+</dict>
+</plist>

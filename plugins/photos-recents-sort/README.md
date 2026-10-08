@@ -2,13 +2,14 @@
 
 这个目录不是从 Git 历史恢复出来的源码，而是 2026-07-25 从设备 `192.168.0.110` 上已安装包 `ayao.photosrecentssort` 导出的本地快照和静态分析结果。
 
-## 当前确认的包信息
+## 当前包信息
 
 - package id: `ayao.photosrecentssort`
 - 名称: `Photos 增强`
-- 版本: `0.1.0`
+- 版本: `0.2.0`
 - 注入目标: `com.apple.mobileslideshow`
-- 依赖: `mobilesubstrate`, `preferenceloader`
+- 依赖: `mobilesubstrate`, `preferenceloader`, `ellekit`
+- 单个 Deb 内包含 `PhotosRecentsSort.dylib` 和 `CR3PreviewCompat.dylib`，设置入口仍只有“Photos 增强”。
 
 ## 目录说明
 
@@ -19,6 +20,10 @@
 - `reconstructed/`
   - 基于 `otool`、`nm`、`strings` 和 plist 元数据做的源码级还原。
   - 目标是保留设计和行为，不承诺与原始源码逐行一致。
+- `CR3PreviewCompat/`
+  - CR3 预览模块的完整可维护源码；构建后与原 Photos 增强二进制一起装入同一个 Deb。
+- `scripts/build-package.sh`
+  - 从已验证的 `0.1.0` 基础包保留原核心二进制和设置控制器，再加入当前设置页和 CR3 预览模块。
 
 ## 已确认的功能
 
@@ -48,6 +53,9 @@
 - `galleryCleanEnabled`，默认 `1`
 - `recentsTimeSortEnabled`，默认 `0`
 - `skipDeleteConfirmationEnabled`，默认 `0`
+- `cr3PreviewEnabled`，默认 `1`，由包内 `CR3PreviewCompat.dylib` 读取
+
+CR3 预览开关位于同一个“Photos 增强”设置页。实现层保留独立 dylib，以避免用行为还原源码重编并替换现有 Photos 增强核心二进制；从 `0.2.0` 起由 `ayao.photosrecentssort` 单包安装和卸载，旧的独立 Deb 包会被替代。
 
 设置页按钮 `respringTapped` 会执行一次桌面重启；prefs bundle 二进制里能看到 `sbreload` 和 `killall SpringBoard` 两条回退路径。
 
