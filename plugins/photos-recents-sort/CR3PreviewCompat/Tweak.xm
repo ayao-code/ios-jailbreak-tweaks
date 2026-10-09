@@ -28,8 +28,28 @@ static NSMutableDictionary<NSString *, NSMutableArray<CR3DataCompletion> *> *CR3
 static NSMutableSet<NSNumber *> *CR3ActiveRequestIDs;
 static atomic_int CR3NextRequestID = CR3SyntheticRequestBase;
 static atomic_bool CR3PreviewEnabled = true;
+static BOOL CR3IsWeChatProcess = NO;
+
+static id CR3PreferenceValue(NSString *key) {
+    NSArray<NSString *> *paths = @[
+        @"/var/jb/var/mobile/Library/Preferences/ayao.photosrecentssort.plist",
+        @"/var/mobile/Library/Preferences/ayao.photosrecentssort.plist"
+    ];
+    for (NSString *path in paths) {
+        NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:path];
+        id value = preferences[key];
+        if (value) {
+            return value;
+        }
+    }
+    return nil;
+}
 
 static BOOL CR3ReadPreference(CFStringRef key, BOOL fallback) {
+    id fileValue = CR3PreferenceValue((__bridge NSString *)key);
+    if ([fileValue respondsToSelector:@selector(boolValue)]) {
+        return [fileValue boolValue];
+    }
     CFPropertyListRef value = CFPreferencesCopyAppValue(key, CR3PrefsDomain);
     if (!value) {
         return fallback;
@@ -70,12 +90,21 @@ static NSString *CR3AssetUUID(PHAsset *asset) {
     return [asset.localIdentifier componentsSeparatedByString:@"/"].firstObject;
 }
 
-static BOOL CR3IsTargetAsset(PHAsset *asset) {
+static BOOL CR3IsCanonAsset(PHAsset *asset) {
     @try {
         NSString *uniformTypeIdentifier = [asset valueForKey:@"uniformTypeIdentifier"];
-        NSInteger thumbnailIndex = [[asset valueForKey:@"thumbnailIndex"] integerValue];
-        return [uniformTypeIdentifier isEqualToString:@"com.canon.cr3-raw-image"] &&
-               thumbnailIndex == NSIntegerMax;
+        return [uniformTypeIdentifier isEqualToString:@"com.canon.cr3-raw-image"];
+    } @catch (__unused NSException *exception) {
+        return NO;
+    }
+}
+
+static BOOL CR3NeedsPreviewFallback(PHAsset *asset) {
+    if (!CR3IsCanonAsset(asset)) {
+        return NO;
+    }
+    @try {
+        return [[asset valueForKey:@"thumbnailIndex"] integerValue] == NSIntegerMax;
     } @catch (__unused NSException *exception) {
         return NO;
     }
@@ -218,7 +247,7 @@ static BOOL CR3IsJPEGStart(const uint8_t *bytes, NSUInteger length, NSUInteger o
         if (remaining > 0) {
             [_buffer appendData:[chunk subdataWithRange:NSMakeRange(0, remaining)]];
         }
-        NSData *result = [self scanBufferedData];
+        NSData *result = [self scanBufferedData] ?: _bestData;
         if (!result && error) {
             *error = CR3Error(2, @"No suitable embedded JPEG found within scan limit");
         }
@@ -417,6 +446,26 @@ static PHImageRequestID CR3RequestImage(PHAsset *asset,
     return requestID;
 }
 
+static PHImageRequestID CR3RequestImageData(PHAsset *asset,
+                                            PHImageRequestOptions *options,
+                                            void (^completion)(NSData *data,
+                                                               NSString *dataUTI,
+                                                               NSInteger orientation,
+                                                               NSDictionary *info)) {
+    PHImageRequestID requestID = CR3CreateRequestID();
+    NSUInteger requiredLongEdge = MAX(asset.pixelWidth, asset.pixelHeight);
+    CR3LoadEmbeddedJPEG(asset, requiredLongEdge, YES, options.isNetworkAccessAllowed, ^(NSData *data, NSError *error) {
+        if (!CR3TakeActiveRequest(requestID) || !completion) {
+            return;
+        }
+        completion(data,
+                   data ? @"public.jpeg" : nil,
+                   CR3AssetOrientation(asset),
+                   CR3ResultInfo(requestID, error));
+    });
+    return requestID;
+}
+
 %hook PHImageManager
 
 - (PHImageRequestID)requestImageForAsset:(PHAsset *)asset
@@ -424,10 +473,42 @@ static PHImageRequestID CR3RequestImage(PHAsset *asset,
                              contentMode:(PHImageContentMode)contentMode
                                  options:(PHImageRequestOptions *)options
                            resultHandler:(void (^)(UIImage *result, NSDictionary *info))resultHandler {
-    if (!atomic_load(&CR3PreviewEnabled) || !CR3IsTargetAsset(asset)) {
+    if (!atomic_load(&CR3PreviewEnabled) || !CR3NeedsPreviewFallback(asset)) {
         return %orig;
     }
     return CR3RequestImage(asset, targetSize, options ?: [PHImageRequestOptions new], resultHandler);
+}
+
+- (PHImageRequestID)requestImageDataAndOrientationForAsset:(PHAsset *)asset
+                                                   options:(PHImageRequestOptions *)options
+                                             resultHandler:(void (^)(NSData *imageData,
+                                                                     NSString *dataUTI,
+                                                                     CGImagePropertyOrientation orientation,
+                                                                     NSDictionary *info))resultHandler {
+    if (!CR3IsWeChatProcess || !atomic_load(&CR3PreviewEnabled) || !CR3IsCanonAsset(asset)) {
+        return %orig;
+    }
+    return CR3RequestImageData(asset, options ?: [PHImageRequestOptions new], ^(NSData *data, NSString *dataUTI, NSInteger orientation, NSDictionary *info) {
+        if (resultHandler) {
+            resultHandler(data, dataUTI, (CGImagePropertyOrientation)orientation, info);
+        }
+    });
+}
+
+- (PHImageRequestID)requestImageDataForAsset:(PHAsset *)asset
+                                      options:(PHImageRequestOptions *)options
+                                resultHandler:(void (^)(NSData *imageData,
+                                                        NSString *dataUTI,
+                                                        UIImageOrientation orientation,
+                                                        NSDictionary *info))resultHandler {
+    if (!CR3IsWeChatProcess || !atomic_load(&CR3PreviewEnabled) || !CR3IsCanonAsset(asset)) {
+        return %orig;
+    }
+    return CR3RequestImageData(asset, options ?: [PHImageRequestOptions new], ^(NSData *data, NSString *dataUTI, __unused NSInteger orientation, NSDictionary *info) {
+        if (resultHandler) {
+            resultHandler(data, dataUTI, CR3UIImageOrientation(asset), info);
+        }
+    });
 }
 
 - (void)cancelImageRequest:(PHImageRequestID)requestID {
@@ -442,6 +523,7 @@ static PHImageRequestID CR3RequestImage(PHAsset *asset,
 
 %ctor {
     @autoreleasepool {
+        CR3IsWeChatProcess = [[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.tencent.xin"];
         CR3StateQueue = dispatch_queue_create("ayao.cr3previewcompat.state", DISPATCH_QUEUE_SERIAL);
         CR3JPEGCache = [NSCache new];
         CR3JPEGCache.countLimit = 16;
