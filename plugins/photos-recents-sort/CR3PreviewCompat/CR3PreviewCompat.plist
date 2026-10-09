@@ -1,7 +1,10 @@
 {
     Filter = {
         Bundles = (
-            "com.apple.mobileslideshow"
+            "com.apple.mobileslideshow",
+            "com.tencent.xin",
+            "com.ss.iphone.ugc.Aweme",
+            "com.adobe.lrmobilephone"
         );
     };
 }

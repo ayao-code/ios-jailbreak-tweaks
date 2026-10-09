@@ -9,6 +9,8 @@
             <string>PSGroupCell</string>
             <key>label</key>
             <string>Photos 增强</string>
+            <key>footerText</key>
+            <string>控制本插件的全部功能。关闭后，图库界面增强、最近项目排序、免确认删除及 CR3 App 兼容均停止工作。</string>
         </dict>
         <dict>
             <key>cell</key>
@@ -26,6 +28,12 @@
         </dict>
         <dict>
             <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>footerText</key>
+            <string>隐藏照片 App 中与缩放层级相关的控件，并压缩对应工具栏高度，让图库界面更简洁。</string>
+        </dict>
+        <dict>
+            <key>cell</key>
             <string>PSSwitchCell</string>
             <key>default</key>
             <true/>
@@ -37,6 +45,12 @@
             <string>图库清爽模式</string>
             <key>PostNotification</key>
             <string>ayao.photosrecentssort/preferences.changed</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>footerText</key>
+            <string>仅调整照片 App“最近项目”的显示顺序，按拍摄时间及同批次信息稳定排序；不会修改照片文件或照片数据库。</string>
         </dict>
         <dict>
             <key>cell</key>
@@ -54,6 +68,12 @@
         </dict>
         <dict>
             <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>footerText</key>
+            <string>删除照片时跳过系统确认步骤。开启后误触会直接执行删除，请谨慎使用。</string>
+        </dict>
+        <dict>
+            <key>cell</key>
             <string>PSSwitchCell</string>
             <key>default</key>
             <false/>
@@ -68,6 +88,12 @@
         </dict>
         <dict>
             <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>footerText</key>
+            <string>照片 App、抖音和 Lightroom 的选图界面使用 CR3 内嵌 JPEG 显示预览；抖音和 Lightroom 选择后仍读取原始 CR3。微信选择后使用最高分辨率内嵌 JPEG，避免朋友圈提示“未能添加”。不会创建或删除相册照片；照片 App 最密集网格仍可能显示白框，以保证滚动流畅。</string>
+        </dict>
+        <dict>
+            <key>cell</key>
             <string>PSSwitchCell</string>
             <key>default</key>
             <true/>
@@ -76,15 +102,13 @@
             <key>key</key>
             <string>cr3PreviewEnabled</string>
             <key>label</key>
-            <string>CR3 预览兼容</string>
+            <string>CR3 App 预览兼容</string>
             <key>PostNotification</key>
             <string>ayao.photosrecentssort/preferences.changed</string>
         </dict>
         <dict>
             <key>cell</key>
             <string>PSGroupCell</string>
-            <key>footerText</key>
-            <string>CR3 预览兼容：在五列附近网格和全屏查看时显示 CR3 内嵌预览图；最密集网格仍可能显示白框，以保证缩放和滚动流畅。总开关关闭时，所有增强功能一并停用。</string>
         </dict>
         <dict>
             <key>action</key>

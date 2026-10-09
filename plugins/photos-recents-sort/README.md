@@ -6,8 +6,8 @@
 
 - package id: `ayao.photosrecentssort`
 - 名称: `Photos 增强`
-- 版本: `0.2.0`
-- 注入目标: `com.apple.mobileslideshow`
+- 版本: `0.2.5`
+- 注入目标: `com.apple.mobileslideshow`, `com.tencent.xin`, `com.ss.iphone.ugc.Aweme`, `com.adobe.lrmobilephone`
 - 依赖: `mobilesubstrate`, `preferenceloader`, `ellekit`
 - 单个 Deb 内包含 `PhotosRecentsSort.dylib` 和 `CR3PreviewCompat.dylib`，设置入口仍只有“Photos 增强”。
 
@@ -23,11 +23,11 @@
 - `CR3PreviewCompat/`
   - CR3 预览模块的完整可维护源码；构建后与原 Photos 增强二进制一起装入同一个 Deb。
 - `scripts/build-package.sh`
-  - 从已验证的 `0.1.0` 基础包保留原核心二进制和设置控制器，再加入当前设置页和 CR3 预览模块。
+  - 从已验证的 `0.2.0` 基础包保留原核心二进制和设置控制器，再加入当前设置页和 CR3 兼容模块。
 
 ## 已确认的功能
 
-从包描述、设置 plist 和二进制元数据可确认这个 tweak 做了三类事情：
+从包描述、设置 plist 和二进制元数据可确认这个 tweak 做了四类事情：
 
 1. 图库清爽模式
    - 隐藏照片 App 里和缩放层级相关的控件。
@@ -40,7 +40,16 @@
    - 包描述明确说明它不修改照片库数据库。
    - 设置项默认关闭。
 
-3. 删除无需确认
+3. 微信 CR3 选图兼容
+   - 只注入微信主进程，不修改微信文件或照片数据库。
+   - 微信请求 Canon CR3 图片数据时，返回 CR3 中分辨率最高的内嵌 JPEG。
+   - 普通 JPEG、HEIC、视频和非 CR3 RAW 均保持微信原逻辑。
+
+4. 抖音和 Lightroom CR3 预览兼容
+   - 仅接管选图界面的 `PHImageManager` 预览请求，返回 CR3 内嵌 JPEG。
+   - 不接管这两个 App 的图片数据和资源请求，选择后仍由 App 读取原始 CR3。
+
+5. 删除无需确认
    - hook `PUDeletePhotosActionController` 的确认逻辑。
    - 只作用于照片 App。
    - 设置项默认关闭。
@@ -53,7 +62,7 @@
 - `galleryCleanEnabled`，默认 `1`
 - `recentsTimeSortEnabled`，默认 `0`
 - `skipDeleteConfirmationEnabled`，默认 `0`
-- `cr3PreviewEnabled`，默认 `1`，由包内 `CR3PreviewCompat.dylib` 读取
+- `cr3PreviewEnabled`，默认 `1`，控制照片 App、微信、抖音和 Lightroom 的 CR3 兼容
 
 CR3 预览开关位于同一个“Photos 增强”设置页。实现层保留独立 dylib，以避免用行为还原源码重编并替换现有 Photos 增强核心二进制；从 `0.2.0` 起由 `ayao.photosrecentssort` 单包安装和卸载，旧的独立 Deb 包会被替代。
 

@@ -2,8 +2,8 @@
 set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-base_package="$project_dir/packages/ayao.photosrecentssort_0.1.0_iphoneos-arm64.deb"
-output_package="$project_dir/packages/ayao.photosrecentssort_0.2.0_iphoneos-arm64.deb"
+base_package="$project_dir/packages/ayao.photosrecentssort_0.2.0_iphoneos-arm64.deb"
+output_package="$project_dir/packages/ayao.photosrecentssort_0.2.5_iphoneos-arm64.deb"
 cr3_dylib="$project_dir/CR3PreviewCompat/.theos/obj/CR3PreviewCompat.dylib"
 
 if [ ! -f "$cr3_dylib" ]; then
@@ -32,9 +32,9 @@ cp "$project_dir/CR3PreviewCompat/CR3PreviewCompat.plist" \
 cat > "$build_dir/DEBIAN/control" <<'EOF'
 Package: ayao.photosrecentssort
 Name: Photos 增强
-Version: 0.2.0
+Version: 0.2.5
 Architecture: iphoneos-arm64
-Description: 照片 App 增强功能与 Canon CR3 内嵌 JPEG 预览兼容。
+Description: 照片 App 增强功能，以及 Canon CR3 在照片、微信、抖音和 Lightroom 中的预览兼容。
 Maintainer: ayao
 Author: ayao
 Section: Tweaks
