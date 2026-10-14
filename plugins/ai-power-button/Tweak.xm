@@ -111,6 +111,42 @@ static void AYPBOpenApplicationAsync(NSString *bundleID) {
     });
 }
 
+static NSString *AYPBFrontmostBundleIdentifier(void) {
+    Class userAgentClass = NSClassFromString(@"SBUserAgent");
+    SEL sharedUserAgentSelector = NSSelectorFromString(@"sharedUserAgent");
+    SEL foregroundSelector = NSSelectorFromString(@"foregroundApplicationDisplayID");
+    if ([userAgentClass respondsToSelector:sharedUserAgentSelector]) {
+        id userAgent = ((id (*)(id, SEL))objc_msgSend)(userAgentClass, sharedUserAgentSelector);
+        if ([userAgent respondsToSelector:foregroundSelector]) {
+            NSString *bundleIdentifier = ((id (*)(id, SEL))objc_msgSend)(userAgent, foregroundSelector);
+            if (bundleIdentifier.length > 0) {
+                NSLog(@"[DoubaoPowerButton] frontmost from SBUserAgent=%@", bundleIdentifier);
+                return bundleIdentifier;
+            }
+        }
+    }
+
+    UIApplication *application = UIApplication.sharedApplication;
+    SEL frontmostSelector = NSSelectorFromString(@"_accessibilityFrontMostApplication");
+    if ([application respondsToSelector:frontmostSelector]) {
+        id frontmostApplication = ((id (*)(id, SEL))objc_msgSend)(application, frontmostSelector);
+        SEL bundleIdentifierSelector = NSSelectorFromString(@"bundleIdentifier");
+        if ([frontmostApplication respondsToSelector:bundleIdentifierSelector]) {
+            NSString *bundleIdentifier = ((id (*)(id, SEL))objc_msgSend)(frontmostApplication, bundleIdentifierSelector);
+            if (bundleIdentifier.length > 0) {
+                NSLog(@"[DoubaoPowerButton] frontmost from accessibility=%@", bundleIdentifier);
+                return bundleIdentifier;
+            }
+        }
+    }
+    NSLog(@"[DoubaoPowerButton] frontmost unavailable");
+    return nil;
+}
+
+static BOOL AYPBIsDeepSeekFrontmost(void) {
+    return [AYPBFrontmostBundleIdentifier() isEqualToString:kDeepSeekBundleID];
+}
+
 static BOOL AYPBReadLockButtonDown(id actions, BOOL *available) {
     if (available) {
         *available = NO;
@@ -142,7 +178,9 @@ static void AYPBSendDeepSeekFromSpringBoard(NSString *reason) {
     gDeepSeekReleaseSendPending = NO;
     NSTimeInterval delay = MAX(0.8, gDeepSeekEarliestSendAt - AYPBNow());
     NSLog(@"[DoubaoPowerButton] deepseek send foreground reason=%@ delay=%.2f", reason, delay);
-    AYPBOpenApplicationAsync(kDeepSeekBundleID);
+    if (!AYPBIsDeepSeekFrontmost()) {
+        AYPBOpenApplicationAsync(kDeepSeekBundleID);
+    }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         NSLog(@"[DoubaoPowerButton] deepseek delayed send notification");
         AYPBPostDarwinNotification(kDeepSeekStopSendNotification);
@@ -244,28 +282,35 @@ static void AYPBPerformDeepSeekAction(void) {
         gDeepSeekRecording = YES;
         gDeepSeekReleaseSendPending = YES;
         BOOL didOpen = NO;
-        if (now - gLastDeepSeekOpenAt > 1.0) {
+        BOOL isFrontmost = AYPBIsDeepSeekFrontmost();
+        if (!isFrontmost && now - gLastDeepSeekOpenAt > 1.0) {
             gLastDeepSeekOpenAt = now;
             didOpen = YES;
             AYPBOpenApplicationAsync(kDeepSeekBundleID);
         }
 
         gDeepSeekEarliestSendAt = now + (didOpen ? 3.4 : 1.2);
-        NSLog(@"[DoubaoPowerButton] deepseek start didOpen=%d earliestSendDelay=%.2f", didOpen, gDeepSeekEarliestSendAt - now);
+        NSLog(@"[DoubaoPowerButton] deepseek start frontmost=%d didOpen=%d earliestSendDelay=%.2f", isFrontmost, didOpen, gDeepSeekEarliestSendAt - now);
         if (didOpen) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                NSLog(@"[DoubaoPowerButton] deepseek delayed start notification 1");
-                AYPBPostDarwinNotification(kDeepSeekStartNotification);
+                if (gDeepSeekReleaseSendPending) {
+                    NSLog(@"[DoubaoPowerButton] deepseek delayed start notification 1");
+                    AYPBPostDarwinNotification(kDeepSeekStartNotification);
+                }
             });
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.8 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                NSLog(@"[DoubaoPowerButton] deepseek delayed start notification 2");
-                AYPBPostDarwinNotification(kDeepSeekStartNotification);
+                if (gDeepSeekReleaseSendPending) {
+                    NSLog(@"[DoubaoPowerButton] deepseek delayed start notification 2");
+                    AYPBPostDarwinNotification(kDeepSeekStartNotification);
+                }
             });
         } else {
             AYPBPostDarwinNotification(kDeepSeekStartNotification);
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                NSLog(@"[DoubaoPowerButton] deepseek retry start notification");
-                AYPBPostDarwinNotification(kDeepSeekStartNotification);
+                if (gDeepSeekReleaseSendPending) {
+                    NSLog(@"[DoubaoPowerButton] deepseek retry start notification");
+                    AYPBPostDarwinNotification(kDeepSeekStartNotification);
+                }
             });
         }
         return;
