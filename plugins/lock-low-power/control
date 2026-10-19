@@ -1,0 +1,9 @@
+Package: ayao.locklowpower
+Name: LockLowPower
+Version: 1.2.1
+Architecture: iphoneos-arm64
+Description: 锁屏后开启低电量模式，完成解锁后关闭。完全事件驱动，无轮询、定时器或后台线程。
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader
