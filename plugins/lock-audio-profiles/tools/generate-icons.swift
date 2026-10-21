@@ -34,30 +34,29 @@ private func withContext(size: Int, scale: Int, draw: (CGContext) -> Void) -> NS
 }
 
 private func drawControlCenterGlyph(in context: CGContext) {
+    context.setLineCap(.round)
+    context.setLineWidth(2.4)
+    let outerWave = CGMutablePath()
+    outerWave.move(to: CGPoint(x: 2.0, y: 5.2))
+    outerWave.addCurve(to: CGPoint(x: 2.0, y: 24.8), control1: CGPoint(x: 12.3, y: 10.3), control2: CGPoint(x: 12.3, y: 19.7))
+    context.addPath(outerWave)
+    context.strokePath()
+    let innerWave = CGMutablePath()
+    innerWave.move(to: CGPoint(x: 7.8, y: 9.1))
+    innerWave.addCurve(to: CGPoint(x: 7.8, y: 20.9), control1: CGPoint(x: 13.8, y: 12.0), control2: CGPoint(x: 13.8, y: 18.0))
+    context.addPath(innerWave)
+    context.strokePath()
+
     let speaker = CGMutablePath()
-    speaker.move(to: CGPoint(x: 1.7, y: 12.0))
-    speaker.addLine(to: CGPoint(x: 6.7, y: 12.0))
-    speaker.addLine(to: CGPoint(x: 13.0, y: 7.0))
-    speaker.addLine(to: CGPoint(x: 13.0, y: 23.0))
-    speaker.addLine(to: CGPoint(x: 6.7, y: 18.0))
-    speaker.addLine(to: CGPoint(x: 1.7, y: 18.0))
+    speaker.move(to: CGPoint(x: 14.0, y: 11.3))
+    speaker.addLine(to: CGPoint(x: 19.0, y: 11.3))
+    speaker.addLine(to: CGPoint(x: 28.8, y: 3.8))
+    speaker.addLine(to: CGPoint(x: 28.8, y: 26.2))
+    speaker.addLine(to: CGPoint(x: 19.0, y: 18.7))
+    speaker.addLine(to: CGPoint(x: 14.0, y: 18.7))
     speaker.closeSubpath()
     context.addPath(speaker)
     context.fillPath()
-
-    context.setLineWidth(2.65)
-    context.setLineCap(.round)
-    context.addArc(center: CGPoint(x: 12.7, y: 15.0), radius: 5.2, startAngle: -0.72, endAngle: 0.72, clockwise: false)
-    context.strokePath()
-
-    let device = CGPath(roundedRect: CGRect(x: 20.7, y: 9.2, width: 5.0, height: 11.3), cornerWidth: 1.8, cornerHeight: 1.8, transform: nil)
-    context.addPath(device)
-    context.strokePath()
-    context.setLineWidth(2.0)
-    context.addArc(center: CGPoint(x: 23.2, y: 14.9), radius: 5.0, startAngle: 2.32, endAngle: 3.96, clockwise: false)
-    context.strokePath()
-    context.addArc(center: CGPoint(x: 23.2, y: 14.9), radius: 5.0, startAngle: -0.82, endAngle: 0.82, clockwise: false)
-    context.strokePath()
 }
 
 private func controlCenterIcon(selected: Bool, scale: Int, path: String) {
