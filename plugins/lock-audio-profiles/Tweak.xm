@@ -182,12 +182,19 @@ static BOOL ReadVolume(NSString *category, float *volume) {
     return [[AVSystemController sharedAVSystemController] getVolume:volume forCategory:category];
 }
 
-static void WriteVolume(NSString *category, float volume) {
+static void WriteVolumeIfNeeded(NSString *category, float volume) {
     float currentVolume = 0.0f;
     if (ReadVolume(category, &currentVolume) && fabsf(currentVolume - volume) < 0.001f) {
         return;
     }
 
+    isApplyingState = YES;
+    automaticVolumeChangeDeadline = CFAbsoluteTimeGetCurrent() + 0.15;
+    [[AVSystemController sharedAVSystemController] setVolumeTo:volume forCategory:category];
+    isApplyingState = NO;
+}
+
+static void WriteVolume(NSString *category, float volume) {
     isApplyingState = YES;
     automaticVolumeChangeDeadline = CFAbsoluteTimeGetCurrent() + 0.15;
     [[AVSystemController sharedAVSystemController] setVolumeTo:volume forCategory:category];
@@ -208,7 +215,9 @@ static void ApplyProfile(BOOL isLocked) {
     NSString *prefix = isLocked ? @"lock" : @"unlock";
     NSString *ringerVolumeKey = [prefix stringByAppendingString:@"RingerVolume"];
     float ringerVolume = ClampVolume(LAPReadDoublePreference(ringerVolumeKey, 50.0));
-    WriteVolume(RingerVolumeCategory, ringerVolume);
+    if (ringerVolume > 0.0001f) {
+        WriteVolumeIfNeeded(RingerVolumeCategory, ringerVolume);
+    }
     ApplyRingerMuteForVolume(ringerVolume);
 
     NSString *mediaVolumeKey = [prefix stringByAppendingString:@"MediaVolume"];
@@ -258,7 +267,7 @@ static void EnforceTotalSilence(void) {
         return;
     }
 
-    WriteVolume(RingerVolumeCategory, 0.0f);
+    WriteVolumeIfNeeded(RingerVolumeCategory, 0.0f);
     WriteVolume(MediaVolumeCategory, 0.0f);
     ApplyRingerMuteForVolume(0.0f);
     WriteSystemBool(RingVibrateKey, NO, RingVibrateChangedNotification);
@@ -272,7 +281,7 @@ static void EnforceTotalSilenceAfterVolumeChange(void) {
 
     float ringerVolume = 0.0f;
     if (ReadVolume(RingerVolumeCategory, &ringerVolume) && ringerVolume > 0.07f) {
-        WriteVolume(RingerVolumeCategory, 0.0f);
+        WriteVolumeIfNeeded(RingerVolumeCategory, 0.0f);
     }
     ApplyRingerMuteForVolume(0.0f);
 }
@@ -307,13 +316,13 @@ static void RestoreTotalSilenceSnapshot(void) {
     }
 
     if (LAPReadBoolPreference(@"snapshotHasRingerVolume", NO)) {
-        WriteVolume(
+        WriteVolumeIfNeeded(
             RingerVolumeCategory,
             (float)LAPReadDoublePreference(@"snapshotRingerVolume", 0.0)
         );
     }
     if (LAPReadBoolPreference(@"snapshotHasMediaVolume", NO)) {
-        WriteVolume(
+        WriteVolumeIfNeeded(
             MediaVolumeCategory,
             (float)LAPReadDoublePreference(@"snapshotMediaVolume", 0.0)
         );
