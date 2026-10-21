@@ -33,44 +33,12 @@ private func withContext(size: Int, scale: Int, draw: (CGContext) -> Void) -> NS
     return rep
 }
 
-private func drawControlCenterGlyph(in context: CGContext) {
-    context.setLineCap(.round)
-    context.setLineWidth(2.4)
-    let outerWave = CGMutablePath()
-    outerWave.move(to: CGPoint(x: 2.0, y: 5.2))
-    outerWave.addCurve(to: CGPoint(x: 2.0, y: 24.8), control1: CGPoint(x: 12.3, y: 10.3), control2: CGPoint(x: 12.3, y: 19.7))
-    context.addPath(outerWave)
-    context.strokePath()
-    let innerWave = CGMutablePath()
-    innerWave.move(to: CGPoint(x: 7.8, y: 9.1))
-    innerWave.addCurve(to: CGPoint(x: 7.8, y: 20.9), control1: CGPoint(x: 13.8, y: 12.0), control2: CGPoint(x: 13.8, y: 18.0))
-    context.addPath(innerWave)
-    context.strokePath()
-
-    let speaker = CGMutablePath()
-    speaker.move(to: CGPoint(x: 14.0, y: 11.3))
-    speaker.addLine(to: CGPoint(x: 19.0, y: 11.3))
-    speaker.addLine(to: CGPoint(x: 28.8, y: 3.8))
-    speaker.addLine(to: CGPoint(x: 28.8, y: 26.2))
-    speaker.addLine(to: CGPoint(x: 19.0, y: 18.7))
-    speaker.addLine(to: CGPoint(x: 14.0, y: 18.7))
-    speaker.closeSubpath()
-    context.addPath(speaker)
-    context.fillPath()
-}
-
-private func controlCenterIcon(selected: Bool, scale: Int, path: String) {
+private func controlCenterIcon(symbolName: String, scale: Int, path: String) {
     let rep = withContext(size: 30, scale: scale) { context in
-        context.setFillColor(NSColor.black.cgColor)
-        context.setStrokeColor(NSColor.black.cgColor)
-        drawControlCenterGlyph(in: context)
-        if selected {
-            context.setLineWidth(3.4)
-            context.setLineCap(.round)
-            context.move(to: CGPoint(x: 3.3, y: 25.7))
-            context.addLine(to: CGPoint(x: 26.3, y: 3.7))
-            context.strokePath()
-        }
+        let configuration = NSImage.SymbolConfiguration(pointSize: 27, weight: .semibold)
+        let symbol = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)!.withSymbolConfiguration(configuration)!
+        let bounds = CGRect(x: 0.5, y: 0.5, width: 29, height: 29)
+        symbol.draw(in: bounds)
     }
     writePNG(rep, to: path)
 }
@@ -120,7 +88,7 @@ private func preferenceIcon(scale: Int, path: String) {
 let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().path
 for scale in 1...3 {
     let suffix = scale == 1 ? "" : "@\(scale)x"
-    controlCenterIcon(selected: false, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration\(suffix).png")
-    controlCenterIcon(selected: true, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration-off\(suffix).png")
+    controlCenterIcon(symbolName: "speaker.wave.2.fill", scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration\(suffix).png")
+    controlCenterIcon(symbolName: "speaker.slash.fill", scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration-off\(suffix).png")
     preferenceIcon(scale: scale, path: "\(root)/Preferences/Resources/icon\(suffix).png")
 }
