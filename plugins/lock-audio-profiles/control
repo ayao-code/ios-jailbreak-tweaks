@@ -1,0 +1,10 @@
+Package: ayao.lockaudioprofiles
+Name: LockAudioProfiles
+Version: 0.1.13
+Architecture: iphoneos-arm64
+Description: 按锁屏与解锁状态切换媒体、铃声音量和系统来电/通知震动，并提供控制中心总静音开关。事件驱动，无轮询。
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader, com.opa334.ccsupport
+Conflicts: com.aa22qq.lockeventringer, com.yaowell.dndhaptics

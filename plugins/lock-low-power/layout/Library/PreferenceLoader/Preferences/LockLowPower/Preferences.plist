@@ -15,7 +15,7 @@
         <key>key</key>
         <string>enabled</string>
         <key>label</key>
-        <string>⚡️ 锁屏自动低电量</string>
+        <string>锁屏自动低电量</string>
         <key>PostNotification</key>
         <string>ayao.locklowpower/preferences.changed</string>
     </dict>
