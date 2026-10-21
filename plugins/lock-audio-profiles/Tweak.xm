@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <Celestial/AVSystemController.h>
 #import <notify.h>
 #import "Shared/LAPShared.h"
@@ -33,6 +34,14 @@
 - (void)activateRingerHUDForVolumeChangeWithInitialVolume:(float)volume;
 @end
 
+@interface MRUContinuousSliderView : UIView
+@property(nonatomic) float value;
+@end
+
+@interface MRUVolumeView : UIView
+@property(nonatomic, strong) MRUContinuousSliderView *primarySlider;
+@end
+
 static NSString *const MediaVolumeCategory = @"Audio/Video";
 static NSString *const RingerVolumeCategory = @"Ringtone";
 static NSString *const SpringBoardPreferencesDomain = @"com.apple.springboard";
@@ -50,6 +59,7 @@ static BOOL isApplyingRingerMute = NO;
 static BOOL ownsRingerMute = NO;
 static __weak SBVolumeControl *volumeControlInstance = nil;
 static __weak SBRingerControl *ringerControlInstance = nil;
+static __weak MRUVolumeView *controlCenterVolumeView = nil;
 static NSInteger pendingRingerMuteState = -1;
 static CFAbsoluteTime automaticVolumeChangeDeadline = 0;
 
@@ -199,6 +209,36 @@ static void WriteVolume(NSString *category, float volume) {
     automaticVolumeChangeDeadline = CFAbsoluteTimeGetCurrent() + 0.15;
     [[AVSystemController sharedAVSystemController] setVolumeTo:volume forCategory:category];
     isApplyingState = NO;
+}
+
+static BOOL IsMediaVolumeZero(void) {
+    float mediaVolume = 0.0f;
+    return ReadVolume(MediaVolumeCategory, &mediaVolume) && mediaVolume <= 0.0001f;
+}
+
+static void SetZeroVolumeFillHidden(MRUContinuousSliderView *slider, BOOL hidden) {
+    if (!slider) {
+        return;
+    }
+    @try {
+        UIView *clippingView = [slider valueForKey:@"valueIndicatorClippingView"];
+        clippingView.hidden = hidden;
+    } @catch (__unused NSException *exception) {
+    }
+}
+
+static void RefreshZeroMediaVolumeAppearance(MRUVolumeView *volumeView) {
+    if (![NSStringFromClass(volumeView.window.class) isEqualToString:@"SBControlCenterWindow"]) {
+        return;
+    }
+
+    controlCenterVolumeView = volumeView;
+    MRUContinuousSliderView *slider = volumeView.primarySlider;
+    BOOL isZero = slider && IsMediaVolumeZero();
+    if (isZero && slider.value > 0.0001f) {
+        slider.value = 0.0f;
+    }
+    SetZeroVolumeFillHidden(slider, isZero);
 }
 
 static void LoadPreferences(void) {
@@ -510,6 +550,16 @@ static void VibrationPreferenceChanged(
 
 %end
 
+%hook MRUVolumeView
+
+- (void)didMoveToWindow {
+    %orig;
+    RefreshZeroMediaVolumeAppearance(self);
+}
+
+%end
+
+
 %hook SBLockScreenManager
 
 - (void)_reallySetUILocked:(BOOL)isLocked {
@@ -560,6 +610,7 @@ static void VibrationPreferenceChanged(
             usingBlock:^(NSNotification *notification) {
                 (void)notification;
                 EnforceTotalSilenceAfterVolumeChange();
+                RefreshZeroMediaVolumeAppearance(controlCenterVolumeView);
             }];
 
         %init;

@@ -30,6 +30,15 @@ static void LAPControlCenterPreferencesChanged(
     return [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
 }
 
+- (UIImage *)systemGlyphNamed:(NSString *)symbolName fallback:(NSString *)fallbackName {
+    UIImage *image = [UIImage systemImageNamed:symbolName];
+    if (!image) {
+        return [self glyphImageNamed:fallbackName];
+    }
+    UIImageSymbolConfiguration *configuration = [UIImageSymbolConfiguration configurationWithPointSize:27.0 weight:UIImageSymbolWeightSemibold];
+    return [[image imageByApplyingSymbolConfiguration:configuration] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+}
+
 - (instancetype)init {
     self = [super init];
     if (self) {
@@ -68,11 +77,11 @@ static void LAPControlCenterPreferencesChanged(
 }
 
 - (UIImage *)iconGlyph {
-    return [self glyphImageNamed:@"sound-vibration"];
+    return [self systemGlyphNamed:@"speaker.wave.2.fill" fallback:@"sound-vibration"];
 }
 
 - (UIImage *)selectedIconGlyph {
-    return [self glyphImageNamed:@"sound-vibration-off"];
+    return [self systemGlyphNamed:@"speaker.slash.fill" fallback:@"sound-vibration-off"];
 }
 
 - (UIColor *)selectedColor {
