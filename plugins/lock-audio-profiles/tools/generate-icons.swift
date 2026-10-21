@@ -33,12 +33,55 @@ private func withContext(size: Int, scale: Int, draw: (CGContext) -> Void) -> NS
     return rep
 }
 
-private func controlCenterIcon(symbolName: String, scale: Int, path: String) {
+private func drawSoundVibrationGlyph(in context: CGContext) {
+    context.setStrokeColor(NSColor.black.cgColor)
+    context.setFillColor(NSColor.black.cgColor)
+    context.setLineCap(.round)
+    context.setLineWidth(2.15)
+
+    let outerVibration = CGMutablePath()
+    outerVibration.move(to: CGPoint(x: 2.4, y: 7.1))
+    outerVibration.addCurve(
+        to: CGPoint(x: 2.4, y: 22.9),
+        control1: CGPoint(x: 7.4, y: 10.7),
+        control2: CGPoint(x: 7.4, y: 19.3)
+    )
+    context.addPath(outerVibration)
+    context.strokePath()
+
+    let innerVibration = CGMutablePath()
+    innerVibration.move(to: CGPoint(x: 7.4, y: 10.4))
+    innerVibration.addCurve(
+        to: CGPoint(x: 7.4, y: 19.6),
+        control1: CGPoint(x: 10.3, y: 12.5),
+        control2: CGPoint(x: 10.3, y: 17.5)
+    )
+    context.addPath(innerVibration)
+    context.strokePath()
+
+    let speaker = CGMutablePath()
+    speaker.move(to: CGPoint(x: 12.1, y: 11.5))
+    speaker.addLine(to: CGPoint(x: 16.8, y: 11.5))
+    speaker.addLine(to: CGPoint(x: 26.4, y: 4.2))
+    speaker.addLine(to: CGPoint(x: 26.4, y: 25.8))
+    speaker.addLine(to: CGPoint(x: 16.8, y: 18.5))
+    speaker.addLine(to: CGPoint(x: 12.1, y: 18.5))
+    speaker.closeSubpath()
+    context.addPath(speaker)
+    context.fillPath()
+}
+
+private func controlCenterIcon(selected: Bool, scale: Int, path: String) {
     let rep = withContext(size: 30, scale: scale) { context in
-        let configuration = NSImage.SymbolConfiguration(pointSize: 27, weight: .semibold)
-        let symbol = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)!.withSymbolConfiguration(configuration)!
-        let bounds = CGRect(x: 0.5, y: 0.5, width: 29, height: 29)
-        symbol.draw(in: bounds)
+        drawSoundVibrationGlyph(in: context)
+        if selected {
+            context.setStrokeColor(NSColor.black.cgColor)
+            context.setLineCap(.round)
+            context.setLineWidth(3.1)
+            context.move(to: CGPoint(x: 3.4, y: 26.0))
+            context.addLine(to: CGPoint(x: 27.0, y: 4.0))
+            context.strokePath()
+        }
     }
     writePNG(rep, to: path)
 }
@@ -88,7 +131,7 @@ private func preferenceIcon(scale: Int, path: String) {
 let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().path
 for scale in 1...3 {
     let suffix = scale == 1 ? "" : "@\(scale)x"
-    controlCenterIcon(symbolName: "speaker.wave.2.fill", scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration\(suffix).png")
-    controlCenterIcon(symbolName: "speaker.slash.fill", scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration-off\(suffix).png")
+    controlCenterIcon(selected: false, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration\(suffix).png")
+    controlCenterIcon(selected: true, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration-off\(suffix).png")
     preferenceIcon(scale: scale, path: "\(root)/Preferences/Resources/icon\(suffix).png")
 }
