@@ -15,7 +15,7 @@
         <key>isController</key>
         <true/>
         <key>label</key>
-        <string>锁屏音量与总静音</string>
+        <string>锁屏音量与整体音量</string>
     </dict>
 </dict>
 </plist>

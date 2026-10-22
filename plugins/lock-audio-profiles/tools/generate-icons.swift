@@ -33,57 +33,103 @@ private func withContext(size: Int, scale: Int, draw: (CGContext) -> Void) -> NS
     return rep
 }
 
-private func drawSoundVibrationGlyph(in context: CGContext) {
-    context.setStrokeColor(NSColor.black.cgColor)
-    context.setFillColor(NSColor.black.cgColor)
-    context.setLineCap(.round)
-    context.setLineWidth(2.15)
-
-    let outerVibration = CGMutablePath()
-    outerVibration.move(to: CGPoint(x: 2.4, y: 7.1))
-    outerVibration.addCurve(
-        to: CGPoint(x: 2.4, y: 22.9),
-        control1: CGPoint(x: 7.4, y: 10.7),
-        control2: CGPoint(x: 7.4, y: 19.3)
-    )
-    context.addPath(outerVibration)
-    context.strokePath()
-
-    let innerVibration = CGMutablePath()
-    innerVibration.move(to: CGPoint(x: 7.4, y: 10.4))
-    innerVibration.addCurve(
-        to: CGPoint(x: 7.4, y: 19.6),
-        control1: CGPoint(x: 10.3, y: 12.5),
-        control2: CGPoint(x: 10.3, y: 17.5)
-    )
-    context.addPath(innerVibration)
-    context.strokePath()
+private func soundVibrationStrokes(selected: Bool) -> [(path: CGPath, width: CGFloat)] {
+    let vibration = CGMutablePath()
+    vibration.move(to: CGPoint(x: 4.5, y: 9))
+    for point in [
+        CGPoint(x: 2.7, y: 11),
+        CGPoint(x: 4.5, y: 13),
+        CGPoint(x: 2.7, y: 15),
+        CGPoint(x: 4.5, y: 17),
+        CGPoint(x: 2.7, y: 19),
+        CGPoint(x: 4.5, y: 21)
+    ] {
+        vibration.addLine(to: point)
+    }
 
     let speaker = CGMutablePath()
-    speaker.move(to: CGPoint(x: 12.1, y: 11.5))
-    speaker.addLine(to: CGPoint(x: 16.8, y: 11.5))
-    speaker.addLine(to: CGPoint(x: 26.4, y: 4.2))
-    speaker.addLine(to: CGPoint(x: 26.4, y: 25.8))
-    speaker.addLine(to: CGPoint(x: 16.8, y: 18.5))
-    speaker.addLine(to: CGPoint(x: 12.1, y: 18.5))
+    speaker.move(to: CGPoint(x: 8.2, y: 11.3))
+    speaker.addLine(to: CGPoint(x: 11.8, y: 11.3))
+    speaker.addLine(to: CGPoint(x: 17.2, y: 6.7))
+    speaker.addQuadCurve(to: CGPoint(x: 18, y: 7.05), control: CGPoint(x: 18, y: 6.05))
+    speaker.addLine(to: CGPoint(x: 18, y: 22.95))
+    speaker.addQuadCurve(to: CGPoint(x: 17.2, y: 23.3), control: CGPoint(x: 18, y: 23.95))
+    speaker.addLine(to: CGPoint(x: 11.8, y: 18.7))
+    speaker.addLine(to: CGPoint(x: 8.2, y: 18.7))
+    speaker.addQuadCurve(to: CGPoint(x: 7.5, y: 18), control: CGPoint(x: 7.5, y: 18.7))
+    speaker.addLine(to: CGPoint(x: 7.5, y: 12))
+    speaker.addQuadCurve(to: CGPoint(x: 8.2, y: 11.3), control: CGPoint(x: 7.5, y: 11.3))
     speaker.closeSubpath()
-    context.addPath(speaker)
-    context.fillPath()
+
+    let innerSoundWave = CGMutablePath()
+    innerSoundWave.move(to: CGPoint(x: 21.4, y: 11.7))
+    innerSoundWave.addQuadCurve(to: CGPoint(x: 21.4, y: 18.3), control: CGPoint(x: 24, y: 15))
+
+    let outerSoundWave = CGMutablePath()
+    outerSoundWave.move(to: CGPoint(x: 24.3, y: 8.4))
+    outerSoundWave.addQuadCurve(to: CGPoint(x: 24.3, y: 21.6), control: CGPoint(x: 29, y: 15))
+
+    var strokes: [(path: CGPath, width: CGFloat)] = [
+        (vibration, 1.65),
+        (speaker, 1.9),
+        (innerSoundWave, 1.85),
+        (outerSoundWave, 1.85)
+    ]
+    if selected {
+        let slash = CGMutablePath()
+        slash.move(to: CGPoint(x: 6, y: 25))
+        slash.addLine(to: CGPoint(x: 23.7, y: 5))
+        strokes.append((slash, 2.05))
+    }
+    return strokes
 }
 
-private func controlCenterIcon(selected: Bool, scale: Int, path: String) {
+private func controlCenterIcon(strokes: [(path: CGPath, width: CGFloat)], scale: Int, path: String) {
     let rep = withContext(size: 30, scale: scale) { context in
-        drawSoundVibrationGlyph(in: context)
-        if selected {
-            context.setStrokeColor(NSColor.black.cgColor)
-            context.setLineCap(.round)
-            context.setLineWidth(3.1)
-            context.move(to: CGPoint(x: 3.4, y: 26.0))
-            context.addLine(to: CGPoint(x: 27.0, y: 4.0))
+        context.setStrokeColor(NSColor.black.cgColor)
+        context.setLineCap(.round)
+        context.setLineJoin(.round)
+        for stroke in strokes {
+            context.setLineWidth(stroke.width)
+            context.addPath(stroke.path)
             context.strokePath()
         }
     }
     writePNG(rep, to: path)
+}
+
+private func controlCenterSVG(strokes: [(path: CGPath, width: CGFloat)], path: String) {
+    let elements = strokes.map { stroke in
+        var commands: [String] = []
+        stroke.path.applyWithBlock { pointer in
+            let element = pointer.pointee
+            let points = element.points
+            switch element.type {
+            case .moveToPoint:
+                commands.append("M\(points[0].x) \(points[0].y)")
+            case .addLineToPoint:
+                commands.append("L\(points[0].x) \(points[0].y)")
+            case .addQuadCurveToPoint:
+                commands.append("Q\(points[0].x) \(points[0].y) \(points[1].x) \(points[1].y)")
+            case .addCurveToPoint:
+                commands.append("C\(points[0].x) \(points[0].y) \(points[1].x) \(points[1].y) \(points[2].x) \(points[2].y)")
+            case .closeSubpath:
+                commands.append("Z")
+            @unknown default:
+                fatalError("Unsupported path element")
+            }
+        }
+        return "    <path d=\"\(commands.joined(separator: " "))\" stroke-width=\"\(stroke.width)\"/>"
+    }
+    let svg = """
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+      <g transform="translate(0 30) scale(1 -1)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+    \(elements.joined(separator: "\n"))
+      </g>
+    </svg>
+
+    """
+    try! svg.write(toFile: path, atomically: true, encoding: .utf8)
 }
 
 private func preferenceIcon(scale: Int, path: String) {
@@ -129,9 +175,13 @@ private func preferenceIcon(scale: Int, path: String) {
 }
 
 let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().path
+let normalStrokes = soundVibrationStrokes(selected: false)
+let selectedStrokes = soundVibrationStrokes(selected: true)
+controlCenterSVG(strokes: normalStrokes, path: "\(root)/ControlCenter/Resources/sound-vibration.svg")
+controlCenterSVG(strokes: selectedStrokes, path: "\(root)/ControlCenter/Resources/sound-vibration-off.svg")
 for scale in 1...3 {
     let suffix = scale == 1 ? "" : "@\(scale)x"
-    controlCenterIcon(selected: false, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration\(suffix).png")
-    controlCenterIcon(selected: true, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration-off\(suffix).png")
+    controlCenterIcon(strokes: normalStrokes, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration\(suffix).png")
+    controlCenterIcon(strokes: selectedStrokes, scale: scale, path: "\(root)/ControlCenter/Resources/sound-vibration-off\(suffix).png")
     preferenceIcon(scale: scale, path: "\(root)/Preferences/Resources/icon\(suffix).png")
 }

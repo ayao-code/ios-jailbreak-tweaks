@@ -2,6 +2,7 @@
 
 NSString *const LAPPreferencesDomain = @"ayao.lockaudioprofiles";
 NSString *const LAPPreferencesChangedNotification = @"ayao.lockaudioprofiles/preferences.changed";
+NSString *const LAPManualVolumeChangedNotification = @"ayao.lockaudioprofiles/manual-volume.changed";
 
 static id LAPCopyPreference(NSString *key) {
     CFStringRef domain = (__bridge CFStringRef)LAPPreferencesDomain;
