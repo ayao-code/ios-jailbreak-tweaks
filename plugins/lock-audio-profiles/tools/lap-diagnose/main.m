@@ -1,10 +1,12 @@
 #import <Foundation/Foundation.h>
 #import <Celestial/AVSystemController.h>
 #import <dlfcn.h>
+#import <mach/mach_time.h>
 #import <notify.h>
 
 static NSString *const PreferencesDomain = @"ayao.lockaudioprofiles";
 static NSString *const PreferencesChangedNotification = @"ayao.lockaudioprofiles/preferences.changed";
+static NSString *const ManualVolumeChangedNotification = @"ayao.lockaudioprofiles/manual-volume.changed";
 static NSString *const SpringBoardPreferencesDomain = @"com.apple.springboard";
 
 static id CopyAppPreference(NSString *key) {
@@ -51,7 +53,7 @@ static int PrintState(void) {
     BOOL hasRingerVolume = [controller getVolume:&ringerVolume forCategory:@"Ringtone"];
     BOOL hasMediaVolume = [controller getVolume:&mediaVolume forCategory:@"Audio/Video"];
     printf(
-        "locked=%llu ringer_state=%llu ringer=%s%.3f media=%s%.3f ring_vibrate=%d silent_vibrate=%d profiles=%d total_silence=%d snapshot=%d\n",
+        "locked=%llu ringer_state=%llu ringer=%s%.3f media=%s%.3f ring_vibrate=%d silent_vibrate=%d profiles=%d manage_media=%d manage_ringer=%d total_silence=%d snapshot=%d\n",
         ReadNotifyState("com.apple.springboard.lockstate"),
         ReadNotifyState("com.apple.springboard.ringerstate"),
         hasRingerVolume ? "" : "unavailable:",
@@ -61,6 +63,8 @@ static int PrintState(void) {
         ReadSystemBool(@"ring-vibrate", YES),
         ReadSystemBool(@"silent-vibrate", YES),
         ReadAppBool(@"profilesEnabled", NO),
+        ReadAppBool(@"manageMediaVolume", YES),
+        ReadAppBool(@"manageRingerVolume", YES),
         ReadAppBool(@"totalSilenceEnabled", NO),
         ReadAppBool(@"silenceSnapshotValid", NO)
     );
@@ -117,6 +121,15 @@ static int SetTotalSilence(BOOL enabled) {
     return 0;
 }
 
+static int SetChannelMode(NSString *channel, BOOL usesLockState) {
+    NSString *key = [channel isEqualToString:@"ringer"]
+        ? @"manageRingerVolume"
+        : @"manageMediaVolume";
+    WriteAppPreference(key, @(usesLockState));
+    PostPreferencesChanged();
+    return 0;
+}
+
 static int SetVolume(NSString *category, float volume) {
     AVSystemController *controller = [AVSystemController sharedAVSystemController];
     BOOL setResult = [controller setVolumeTo:volume forCategory:category];
@@ -131,6 +144,53 @@ static int SetVolume(NSString *category, float volume) {
         readback
     );
     return setResult ? 0 : 69;
+}
+
+static int RequestVolume(NSString *category, double percentage) {
+    WriteAppPreference(@"manualVolumeRequest", @{
+        @"category": category,
+        @"value": @(MAX(0.0, MIN(100.0, percentage))),
+        @"id": @(mach_continuous_time())
+    });
+    CFPreferencesAppSynchronize((__bridge CFStringRef)PreferencesDomain);
+    CFNotificationCenterPostNotification(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        (__bridge CFStringRef)ManualVolumeChangedNotification,
+        NULL,
+        NULL,
+        YES
+    );
+    return 0;
+}
+
+static int RestorePreferences(NSString *path) {
+    NSDictionary *backup = [NSDictionary dictionaryWithContentsOfFile:path];
+    if (!backup) {
+        return 66;
+    }
+
+    CFStringRef domain = (__bridge CFStringRef)PreferencesDomain;
+    NSDictionary *current = (__bridge_transfer NSDictionary *)CFPreferencesCopyMultiple(
+        NULL,
+        domain,
+        kCFPreferencesCurrentUser,
+        kCFPreferencesAnyHost
+    );
+    for (NSString *key in current) {
+        if (!backup[key]) {
+            CFPreferencesSetAppValue((__bridge CFStringRef)key, NULL, domain);
+        }
+    }
+    [backup enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop) {
+        (void)stop;
+        CFPreferencesSetAppValue(
+            (__bridge CFStringRef)key,
+            (__bridge CFPropertyListRef)value,
+            domain
+        );
+    }];
+    PostPreferencesChanged();
+    return 0;
 }
 
 static int LockDevice(void) {
@@ -167,6 +227,10 @@ int main(int argc, char *argv[]) {
                 return SetTotalSilence(NO);
             }
         }
+        if (argc == 4 && strcmp(argv[1], "mode") == 0) {
+            NSString *channel = strcmp(argv[2], "ringer") == 0 ? @"ringer" : @"media";
+            return SetChannelMode(channel, strcmp(argv[3], "lock") == 0);
+        }
         if (argc == 2 && strcmp(argv[1], "lock") == 0) {
             return LockDevice();
         }
@@ -174,7 +238,14 @@ int main(int argc, char *argv[]) {
             NSString *category = strcmp(argv[2], "ringer") == 0 ? @"Ringtone" : @"Audio/Video";
             return SetVolume(category, strtof(argv[3], NULL));
         }
-        fprintf(stderr, "usage: lap-diagnose state|configure-test|silence on|silence off|lock|set-volume ringer|media value\n");
+        if (argc == 4 && strcmp(argv[1], "request-volume") == 0) {
+            NSString *category = strcmp(argv[2], "ringer") == 0 ? @"Ringtone" : @"Audio/Video";
+            return RequestVolume(category, strtod(argv[3], NULL));
+        }
+        if (argc == 3 && strcmp(argv[1], "restore-prefs") == 0) {
+            return RestorePreferences(@(argv[2]));
+        }
+        fprintf(stderr, "usage: lap-diagnose state|configure-test|silence on|silence off|mode ringer|media lock|overall|lock|set-volume ringer|media value|request-volume ringer|media percentage|restore-prefs path\n");
         return 64;
     }
 }

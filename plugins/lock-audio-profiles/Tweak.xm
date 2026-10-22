@@ -51,6 +51,8 @@ static NSString *const RingVibrateChangedNotification = @"com.apple.springboard.
 static NSString *const SilentVibrateChangedNotification = @"com.apple.springboard.silent-vibrate.changed";
 
 static BOOL profilesEnabled = NO;
+static BOOL manageMediaVolume = YES;
+static BOOL manageRingerVolume = YES;
 static BOOL totalSilenceEnabled = NO;
 static BOOL hasObservedLockState = NO;
 static BOOL lastObservedLockState = NO;
@@ -243,8 +245,18 @@ static void RefreshZeroMediaVolumeAppearance(MRUVolumeView *volumeView) {
 
 static void LoadPreferences(void) {
     profilesEnabled = LAPReadBoolPreference(@"profilesEnabled", NO);
+    manageMediaVolume = LAPReadBoolPreference(@"manageMediaVolume", YES);
+    manageRingerVolume = LAPReadBoolPreference(@"manageRingerVolume", YES);
     totalSilenceEnabled = LAPReadBoolPreference(@"totalSilenceEnabled", NO);
     ownsRingerMute = LAPReadBoolPreference(@"ringerMuteOwned", NO);
+}
+
+static BOOL LockStateControlsMediaVolume(void) {
+    return profilesEnabled && manageMediaVolume;
+}
+
+static BOOL LockStateControlsRingerVolume(void) {
+    return profilesEnabled && manageRingerVolume;
 }
 
 static void ApplyProfile(BOOL isLocked) {
@@ -253,15 +265,19 @@ static void ApplyProfile(BOOL isLocked) {
     }
 
     NSString *prefix = isLocked ? @"lock" : @"unlock";
-    NSString *ringerVolumeKey = [prefix stringByAppendingString:@"RingerVolume"];
-    float ringerVolume = ClampVolume(LAPReadDoublePreference(ringerVolumeKey, 50.0));
-    if (ringerVolume > 0.0001f) {
-        WriteVolumeIfNeeded(RingerVolumeCategory, ringerVolume);
+    if (LockStateControlsRingerVolume()) {
+        NSString *ringerVolumeKey = [prefix stringByAppendingString:@"RingerVolume"];
+        float ringerVolume = ClampVolume(LAPReadDoublePreference(ringerVolumeKey, 50.0));
+        if (ringerVolume > 0.0001f) {
+            WriteVolumeIfNeeded(RingerVolumeCategory, ringerVolume);
+        }
+        ApplyRingerMuteForVolume(ringerVolume);
     }
-    ApplyRingerMuteForVolume(ringerVolume);
 
-    NSString *mediaVolumeKey = [prefix stringByAppendingString:@"MediaVolume"];
-    WriteVolume(MediaVolumeCategory, ClampVolume(LAPReadDoublePreference(mediaVolumeKey, 50.0)));
+    if (LockStateControlsMediaVolume()) {
+        NSString *mediaVolumeKey = [prefix stringByAppendingString:@"MediaVolume"];
+        WriteVolume(MediaVolumeCategory, ClampVolume(LAPReadDoublePreference(mediaVolumeKey, 50.0)));
+    }
 
     NSString *ringVibrationKey = [prefix stringByAppendingString:@"RingVibration"];
     WriteSystemBool(
@@ -276,6 +292,63 @@ static void ApplyProfile(BOOL isLocked) {
         LAPReadBoolPreference(silentVibrationKey, YES),
         SilentVibrateChangedNotification
     );
+}
+
+static void PresentManualVolumeHUD(NSString *category, float volume) {
+    automaticVolumeChangeDeadline = 0;
+    if ([category isEqualToString:MediaVolumeCategory]) {
+        [volumeControlInstance _presentVolumeHUDWithVolume:volume];
+        return;
+    }
+
+    SBRingerControl *ringerControl = GetRingerControl();
+    if ([ringerControl respondsToSelector:@selector(activateRingerHUDForVolumeChangeWithInitialVolume:)]) {
+        [ringerControl activateRingerHUDForVolumeChangeWithInitialVolume:volume];
+    } else if ([ringerControl respondsToSelector:@selector(activateRingerHUD:withInitialVolume:fromSource:)]) {
+        [ringerControl activateRingerHUD:volume <= 0.0001f withInitialVolume:volume fromSource:0];
+    }
+}
+
+static void ApplyManualVolumeRequest(void) {
+    static uint64_t lastRequestID = 0;
+    CFPreferencesAppSynchronize((__bridge CFStringRef)LAPPreferencesDomain);
+    NSDictionary *request = (__bridge_transfer NSDictionary *)CFPreferencesCopyAppValue(
+        CFSTR("manualVolumeRequest"),
+        (__bridge CFStringRef)LAPPreferencesDomain
+    );
+    uint64_t requestID = [request[@"id"] unsignedLongLongValue];
+    if (requestID == 0 || requestID == lastRequestID) {
+        return;
+    }
+    lastRequestID = requestID;
+
+    NSString *category = request[@"category"];
+    float volume = ClampVolume([request[@"value"] doubleValue]);
+    if ([category isEqualToString:MediaVolumeCategory]) {
+        if (LockStateControlsMediaVolume() && !totalSilenceEnabled) {
+            return;
+        }
+        automaticVolumeChangeDeadline = CFAbsoluteTimeGetCurrent() + 0.15;
+        isApplyingState = YES;
+        [[AVSystemController sharedAVSystemController] setVolumeTo:volume forCategory:MediaVolumeCategory];
+        isApplyingState = NO;
+        PresentManualVolumeHUD(category, volume);
+        return;
+    }
+
+    if (![category isEqualToString:RingerVolumeCategory] ||
+        LockStateControlsRingerVolume() ||
+        totalSilenceEnabled) {
+        return;
+    }
+    if (volume > 0.0001f) {
+        automaticVolumeChangeDeadline = CFAbsoluteTimeGetCurrent() + 0.15;
+        isApplyingState = YES;
+        [[AVSystemController sharedAVSystemController] setVolumeTo:volume forCategory:RingerVolumeCategory];
+        isApplyingState = NO;
+    }
+    ApplyRingerMuteForVolume(volume);
+    PresentManualVolumeHUD(category, volume);
 }
 
 static void SaveTotalSilenceSnapshotIfNeeded(void) {
@@ -411,6 +484,9 @@ static void PreferencesChanged(
         if (wasTotalSilenceEnabled || LAPReadBoolPreference(@"silenceSnapshotValid", NO)) {
             RestoreTotalSilenceSnapshot();
         }
+        if (!LockStateControlsRingerVolume() && ownsRingerMute) {
+            SetRingerMuted(NO);
+        }
         if (hasObservedLockState) {
             ApplyProfile(lastObservedLockState);
         }
@@ -431,6 +507,24 @@ static void VibrationPreferenceChanged(
     (void)userInfo;
     dispatch_async(dispatch_get_main_queue(), ^{
         EnforceTotalSilenceAfterVibrationChange();
+    });
+}
+
+static void ManualVolumeChanged(
+    CFNotificationCenterRef center,
+    void *observer,
+    CFStringRef name,
+    const void *object,
+    CFDictionaryRef userInfo
+) {
+    (void)center;
+    (void)observer;
+    (void)name;
+    (void)object;
+    (void)userInfo;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        LoadPreferences();
+        ApplyManualVolumeRequest();
     });
 }
 
@@ -506,6 +600,8 @@ static void VibrationPreferenceChanged(
     dispatch_async(dispatch_get_main_queue(), ^{
         if (totalSilenceEnabled) {
             EnforceTotalSilence();
+        } else if (!LockStateControlsRingerVolume() && ownsRingerMute) {
+            SetRingerMuted(NO);
         } else if (hasObservedLockState) {
             ApplyProfile(lastObservedLockState);
         }
@@ -592,6 +688,14 @@ static void VibrationPreferenceChanged(
             NULL,
             VibrationPreferenceChanged,
             (__bridge CFStringRef)RingVibrateChangedNotification,
+            NULL,
+            CFNotificationSuspensionBehaviorDeliverImmediately
+        );
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            NULL,
+            ManualVolumeChanged,
+            (__bridge CFStringRef)LAPManualVolumeChangedNotification,
             NULL,
             CFNotificationSuspensionBehaviorDeliverImmediately
         );
