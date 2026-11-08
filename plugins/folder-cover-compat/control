@@ -1,0 +1,12 @@
+Package: ayao.foldercovercompat
+Name: 桌面文件夹封面修复
+Version: 0.1.4
+Architecture: iphoneos-arm64e
+Description: 修正普通桌面文件夹大图封面的尺寸，避免偏移、留白和右侧裁切。
+ 保留 PrimalFolder2 大图封面和 BoldersReborn 文件夹内的 4×5 排列，不改变容量、成员、顺序或 App 白名单。
+ 仅加载到 SpringBoard；不修改 App 内图片、相册、壁纸、小组件或 App 资源库预览。
+ 无后台轮询；仅在封面生成和更新时工作。此版本只更新中文名称和说明，功能与 0.1.3 相同。
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: firmware (>= 16.3), firmware (<< 16.4), ellekit, com.ichitaso.primalfolder2 (= 0.1.2), com.nightwind.boldersreborn (= 1.1.2)

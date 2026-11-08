@@ -2,8 +2,6 @@
 #import <UIKit/UIKit.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
-#import <spawn.h>
-#import <sys/wait.h>
 
 #define NSLog(...) do { if (NO) { (void)[NSString stringWithFormat:__VA_ARGS__]; } } while (0)
 
@@ -86,28 +84,28 @@ static void AYPBPostDarwinNotification(NSString *notificationName) {
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), (__bridge CFStringRef)notificationName, NULL, NULL, YES);
 }
 
-extern char **environ;
-
 static void AYPBOpenApplicationAsync(NSString *bundleID) {
     NSString *bundleIDCopy = [bundleID copy];
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        NSLog(@"[DoubaoPowerButton] uiopen request %@", bundleIDCopy);
-        const char *path = "/var/jb/usr/bin/uiopen";
-        const char *bundleIDString = [bundleIDCopy UTF8String];
-        char * const argv[] = {
-            (char *)"uiopen",
-            (char *)"--bundleid",
-            (char *)bundleIDString,
-            NULL
-        };
-        pid_t pid = 0;
-        int result = posix_spawn(&pid, path, NULL, NULL, argv, environ);
-        NSLog(@"[DoubaoPowerButton] uiopen spawn result=%d pid=%d", result, pid);
-        if (result == 0) {
-            int status = 0;
-            waitpid(pid, &status, 0);
-            NSLog(@"[DoubaoPowerButton] uiopen exit status=%d", status);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        Class serviceClass = NSClassFromString(@"FBSSystemService");
+        SEL sharedSelector = NSSelectorFromString(@"sharedService");
+        SEL openSelector = NSSelectorFromString(@"openApplication:options:withResult:");
+        if (![serviceClass respondsToSelector:sharedSelector]) {
+            NSLog(@"[DoubaoPowerButton] FrontBoard service unavailable");
+            return;
         }
+
+        id service = ((id (*)(id, SEL))objc_msgSend)(serviceClass, sharedSelector);
+        if (![service respondsToSelector:openSelector]) {
+            NSLog(@"[DoubaoPowerButton] open application selector unavailable");
+            return;
+        }
+
+        ((void (*)(id, SEL, NSString *, NSDictionary *, id))objc_msgSend)(service,
+                                                                          openSelector,
+                                                                          bundleIDCopy,
+                                                                          @{},
+                                                                          nil);
     });
 }
 

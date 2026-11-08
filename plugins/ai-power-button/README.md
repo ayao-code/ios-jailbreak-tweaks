@@ -1,6 +1,6 @@
 # AiPowerButton
 
-适用于 iOS 16 Dopamine rootless 越狱环境的侧边键快捷插件。安装后可以在系统设置的 `AiPowerButton` 中选择长按关机键启动豆包或 DeepSeek 语音助手。
+适用于 iOS 16 Dopamine rootless 与 RootHide 越狱环境的侧边键快捷插件。安装后可以在系统设置的 `AiPowerButton` 中选择长按关机键启动豆包或 DeepSeek 语音助手。
 
 ## 功能
 
@@ -15,15 +15,15 @@
 ## 兼容环境
 
 - iOS 16
-- Dopamine rootless 越狱
+- Dopamine rootless / RootHide 越狱
 - arm64 / arm64e 设备
 - 需要 `mobilesubstrate` 和 `preferenceloader`
 
 ## 安装
 
-当前稳定版是 `packages/ayao.aipowerbutton_1.0.4_iphoneos-arm64.deb`。安装完成后需要重载 SpringBoard。
+当前稳定版是 `packages/ayao.aipowerbutton_1.0.5_iphoneos-arm64.deb`。RootHide 设备使用 RootHide 官方 Theos 原生构建的 `iphoneos-arm64e` 包。安装完成后需要重载 SpringBoard。
 
-`packages/` 中的 1.0.2、1.0.3 和 1.0.4~test1 至 1.0.4~test10 均作为历史与诊断产物保留，不得删除或被正式包覆盖。
+`packages/` 保留 1.0.5 两种目标环境的包及 1.0.4 普通 rootless 回滚包。1.0.2、1.0.3 和 1.0.4~test1 至 test10 的旧包已按用户要求清理；下方历史记录不表示对应包仍保留。
 
 > 如果设备上已经安装旧包 `com.ayao.doubaopowerbutton`，请先卸载旧包后再安装新版；新版 package id 为 `ayao.aipowerbutton`。
 
@@ -37,6 +37,11 @@
 6. 如果需要使用系统关机/SOS，按音量键加关机键即可，插件会自动放行系统原始行为。
 
 ## 版本说明
+
+### 1.0.5
+
+- 启动 App 改为由 SpringBoard 直接调用 FrontBoard 服务，不再依赖固定的 `/var/jb/usr/bin/uiopen` 路径。
+- 保持原有 SpringBoard、豆包与 DeepSeek 三个精确 Filter，兼容 Dopamine rootless 与 RootHide 随机越狱根路径。
 
 ### 1.0.4
 

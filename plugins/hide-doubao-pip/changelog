@@ -1,3 +1,13 @@
+HideDoubaoPiP v1.0.31
+
+主要作用：保留用户认可的免跳转和整屏截图兼容修复，结束 debug 诊断。
+
+- 整屏截图优先使用 _UICreateScreenUIImage；UIGetScreenImage 按 CGImageRef 转换并释放。
+- 不再用只绘制 SpringBoard 窗口的图片作为前台 App 遮罩。
+- 删除详细窗口/场景/单调时间诊断，保留低频功能日志和原生语音、双向事务及 PiP 隐藏行为。
+- 本次仅生成 RootHide arm64e 正式包；普通 rootless 仍保留历史 1.0.30 包。
+- 用户反馈消息编辑基本正常，搜索框未全面验收；不宣称完整 GUI 自动化通过。
+
 HideDoubaoPiP v1.0.30
 
 主要作用：前向和反向 App-to-App 转场都以完整事务结束事件为准，避免返回原 App 的动画尚未结束就提前撤罩。

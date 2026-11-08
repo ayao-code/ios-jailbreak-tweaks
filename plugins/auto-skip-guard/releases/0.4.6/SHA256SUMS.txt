@@ -1,0 +1,2 @@
+7c00b3484cd9dd0ed606c5dd426a50df129154f4f3021ae4d9710fd9374aa725  AutoSkipGuard_0.4.6_arm64.dylib
+aa1297edac23da5ca54958c97003a13fb1b9704081ee39d2b2688a887979ab31  AutoSkipGuard_0.4.6_source.zip

@@ -1,0 +1,9 @@
+Package: ayao.feiliancontrolcenter
+Name: 飞连 VPN 控制中心
+Version: 1.2.0
+Architecture: iphoneos-arm64e
+Description: 飞连专用控制中心开关，按需后台调用原生连接，严格不跳转 App 或自动处理身份验证。
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: firmware (>= 16.0), com.opa334.ccsupport, mobilesubstrate

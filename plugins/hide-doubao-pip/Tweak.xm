@@ -35,6 +35,7 @@ static BOOL sDNJReturnStarted = NO;
 static int sDNJPrepareStateToken = 0;
 
 typedef UIImage *(*DNJScreenImageFunction)(void);
+typedef CGImageRef (*DNJScreenCGImageFunction)(void);
 static NSArray<UIWindow *> *SpringBoardWindows(void);
 
 typedef NS_ENUM(NSInteger, DoubaoPiPIdentity) {
@@ -279,31 +280,42 @@ static void DNJMaybeReturnToSource(NSString *reason) {
     DNJReturnToSource(reason);
 }
 
-static UIImage *DNJCaptureVisibleWindows(void) {
-    CGSize size = UIScreen.mainScreen.bounds.size;
-    UIGraphicsBeginImageContextWithOptions(size, YES, UIScreen.mainScreen.scale);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    if (!context) {
-        UIGraphicsEndImageContext();
-        return nil;
+static UIImage *DNJCaptureDisplay(NSString **captureMethod) {
+    // Screen composition includes the foreground app, unlike drawing only
+    // SpringBoard's own windows. Resolve lazily, not during SpringBoard launch.
+    static DNJScreenImageFunction createScreenImage = NULL;
+    static DNJScreenCGImageFunction getScreenImage = NULL;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        createScreenImage = (DNJScreenImageFunction)dlsym(RTLD_DEFAULT, "_UICreateScreenUIImage");
+        getScreenImage = (DNJScreenCGImageFunction)dlsym(RTLD_DEFAULT, "UIGetScreenImage");
+    });
+    UIImage *snapshot = createScreenImage ? createScreenImage() : nil;
+    if (snapshot && snapshot.size.width > 0 && snapshot.size.height > 0) {
+        if (captureMethod) *captureMethod = @"_UICreateScreenUIImage";
+        return snapshot;
     }
-
-    NSArray<UIWindow *> *windows = SpringBoardWindows();
-    for (UIWindow *window in windows) {
-        if (window.hidden || window.alpha <= 0.01 || window == sDNJOverlayWindow) continue;
-        CGContextSaveGState(context);
-        CGContextConcatCTM(context, window.transform);
-        [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:NO];
-        CGContextRestoreGState(context);
+    CGImageRef screenImage = getScreenImage ? getScreenImage() : NULL;
+    if (screenImage) {
+        snapshot = [UIImage imageWithCGImage:screenImage scale:UIScreen.mainScreen.scale
+                                orientation:UIImageOrientationUp];
+        CGImageRelease(screenImage);
+        if (snapshot.size.width > 0 && snapshot.size.height > 0) {
+            if (captureMethod) *captureMethod = @"UIGetScreenImage";
+            return snapshot;
+        }
     }
-    UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return snapshot;
+    if (captureMethod) *captureMethod = @"unavailable";
+    // Do not put a misleading desktop-only picture over another app.
+    return nil;
 }
 
 static void DNJShowOverlay(void) {
-    DNJScreenImageFunction screenImage = (DNJScreenImageFunction)dlsym(RTLD_DEFAULT, "UIGetScreenImage");
-    UIImage *snapshot = screenImage ? screenImage() : DNJCaptureVisibleWindows();
+    NSString *captureMethod = nil;
+    UIImage *snapshot = DNJCaptureDisplay(&captureMethod);
+    WriteLog(@"[VISUAL] capture=%@ size=%@ scale=%.2f",
+             captureMethod,
+             NSStringFromCGSize(snapshot.size), snapshot.scale);
     if (!snapshot) return;
 
     UIViewController *controller = [UIViewController new];
@@ -909,5 +921,5 @@ static void HideDoubaoWindowForView(UIView *view, NSString *reason) {
 
 %ctor {
     DNJInstallVisualTransitionBridge();
-    WriteLog(@"[INIT] HideDoubaoPiP v1.0.30 bidirectional-transaction-gate");
+    WriteLog(@"[INIT] HideDoubaoPiP v1.0.31 display-capture-fix release");
 }

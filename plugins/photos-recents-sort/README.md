@@ -6,10 +6,10 @@
 
 - package id: `ayao.photosrecentssort`
 - 名称: `Photos 增强`
-- 版本: `0.2.5`
-- 注入目标: `com.apple.mobileslideshow`, `com.tencent.xin`, `com.ss.iphone.ugc.Aweme`, `com.adobe.lrmobilephone`
+- 版本: `0.2.9`
+- 注入目标: `com.apple.mobileslideshow`, `com.ss.iphone.ugc.Aweme`, `com.adobe.lrmobilephone`
 - 依赖: `mobilesubstrate`, `preferenceloader`, `ellekit`
-- 单个 Deb 内包含 `PhotosRecentsSort.dylib` 和 `CR3PreviewCompat.dylib`，设置入口仍只有“Photos 增强”。
+- 单个 Deb 内包含 `PhotosRecentsSort.dylib`、`CR3PreviewCompat.dylib` 和 `PhotosAlbumControlCenter.bundle`，设置入口仍只有“Photos 增强”。
 
 ## 目录说明
 
@@ -40,19 +40,19 @@
    - 包描述明确说明它不修改照片库数据库。
    - 设置项默认关闭。
 
-3. 微信 CR3 选图兼容
-   - 只注入微信主进程，不修改微信文件或照片数据库。
-   - 微信请求 Canon CR3 图片数据时，返回 CR3 中分辨率最高的内嵌 JPEG。
-   - 普通 JPEG、HEIC、视频和非 CR3 RAW 均保持微信原逻辑。
-
-4. 抖音和 Lightroom CR3 预览兼容
+3. 抖音和 Lightroom CR3 预览兼容
    - 仅接管选图界面的 `PHImageManager` 预览请求，返回 CR3 内嵌 JPEG。
    - 不接管这两个 App 的图片数据和资源请求，选择后仍由 App 读取原始 CR3。
 
-5. 删除无需确认
+4. 删除无需确认
    - hook `PUDeletePhotosActionController` 的确认逻辑。
    - 只作用于照片 App。
    - 设置项默认关闭。
+
+5. 控制中心相册入口
+   - 安装后提供名为“相册入口”的 Control Center 模块。
+   - 点击模块通过 `LSApplicationWorkspace` 按 Bundle ID 启动系统照片 App。
+   - 模块不向照片 App 注入额外代码，也不修改照片库。
 
 ## 已确认的设置项
 
@@ -62,7 +62,7 @@
 - `galleryCleanEnabled`，默认 `1`
 - `recentsTimeSortEnabled`，默认 `0`
 - `skipDeleteConfirmationEnabled`，默认 `0`
-- `cr3PreviewEnabled`，默认 `1`，控制照片 App、微信、抖音和 Lightroom 的 CR3 兼容
+- `cr3PreviewEnabled`，默认 `1`，控制照片 App、抖音和 Lightroom 的 CR3 兼容
 
 CR3 预览开关位于同一个“Photos 增强”设置页。实现层保留独立 dylib，以避免用行为还原源码重编并替换现有 Photos 增强核心二进制；从 `0.2.0` 起由 `ayao.photosrecentssort` 单包安装和卸载，旧的独立 Deb 包会被替代。
 

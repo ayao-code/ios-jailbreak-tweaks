@@ -90,7 +90,7 @@
             <key>cell</key>
             <string>PSGroupCell</string>
             <key>footerText</key>
-            <string>照片 App、抖音和 Lightroom 的选图界面使用 CR3 内嵌 JPEG 显示预览；抖音和 Lightroom 选择后仍读取原始 CR3。微信选择后使用最高分辨率内嵌 JPEG，避免朋友圈提示“未能添加”。不会创建或删除相册照片；照片 App 最密集网格仍可能显示白框，以保证滚动流畅。</string>
+            <string>照片 App、抖音和 Lightroom 的选图界面使用 CR3 内嵌 JPEG 显示预览；抖音和 Lightroom 选择后仍读取原始 CR3。不会创建或删除相册照片；照片 App 最密集网格仍可能显示白框，以保证滚动流畅。</string>
         </dict>
         <dict>
             <key>cell</key>

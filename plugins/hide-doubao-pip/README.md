@@ -1,6 +1,8 @@
 # HideDoubaoPiP
 
-适用于 iOS 16 Dopamine rootless 越狱环境的豆包输入法 PiP 插件。安装后仅针对豆包输入法创建的 PiP 悬浮窗隐藏 UI；冷启动必须短暂前台激活豆包时，通过双向 App-to-App 事务遮罩隐藏切换，并保留豆包原生语音识别、文字回传和松键停止链路。
+> 2026-11-08 仓库整理说明：原始截图、设备导出、历史测试包及详细日志已按用户要求清理。下文旧 `research/`、`evidence/` 路径仅描述当时记录，不代表文件仍在；保留正式源码、资源和必要交付包。此次整理未重新执行功能验收。
+
+适用于 iOS 16 的豆包输入法 PiP 插件。当前 1.0.31 仅构建和安装 RootHide 包；普通 Dopamine rootless 的历史包保留为 1.0.30。安装后仅针对豆包输入法创建的 PiP 悬浮窗隐藏 UI；冷启动必须短暂前台激活豆包时，通过双向 App-to-App 事务遮罩隐藏切换，并保留豆包原生语音识别、文字回传和松键停止链路。
 
 ## 功能
 
@@ -12,37 +14,48 @@
 - 保留 `PGHitTestExtendableView` 作为系统可见的 PiP 命中容器，只将其 CALayer 渲染透明，并隐藏内部内容/控制层。
 - 通过 PiP window 和少量内部 layout 触发点重新应用隐藏，处理系统 layout 后恢复显示的问题。
 - 只在豆包主 App 和键盘扩展内启用原生 `PiP not ready` 恢复及跳转修复，不伪造就绪状态、不拦截其他 URL。
-- 仅当键盘准备打开 `oime://start_asr_from_keyboard` 时发送后台事件；SpringBoard 后台启动豆包并通过 `prepare → ready → request → ack` 事件握手避免冷启动丢事件。
+- 仅当键盘准备打开 `oime://start_asr_from_keyboard` 时请求 SpringBoard 准备整屏截图遮罩；确认准备完成后沿用豆包原始 URL 打开路径。
 - 冷启动必须短暂前台激活豆包时，先显示当前界面截图遮罩一帧再放行跳转，减少豆包界面闪现。
 - 本次语音转场中新创建且 bundle 尚未挂载的豆包特征 PiP 会提前隐藏整个 window layer，避免悬浮窗先出现再消失；非本次转场和明确非豆包 PiP 不受影响。
 - 从 Spotlight 发起时不尝试恢复其临时搜索控制器，而是使用系统 Home 关闭路径回到桌面，避免只剩全屏模糊背景。
-- 只有主 App 成功激活录音音频会话后才确认接管并阻止前台跳转；5.5 秒内未确认则恢复原始 URL 行为，避免语音不可用。
-- 录音期间继续持有短时执行权，使文字回传和松键停止沿用豆包原生 IPC；音频会话停用时立即释放，并设置 120 秒安全上限。
+- 主 App 原生音频会话激活后，等待前向事务完成及 PiP 就绪或宽限结束，再返回原 App；不伪造录音成功，不新增执行断言或后台保活。
+- 键盘准备确认超时 0.45 秒时仍放行原始 URL，语音识别、文字回传和松键停止沿用豆包原生链路。
 - 完全事件驱动，不新增轮询或常驻后台任务；仅使用启动、回退和安全释放的一次性超时。
 - 保留 `/var/mobile/Documents/PiPArrowHide.log` 低频运行日志，达到 256KB 后截断重写。
 
 ## 兼容环境
 
 - iOS 16
-- Dopamine rootless 越狱
-- arm64 / arm64e 设备
+- 1.0.31：RootHide，包架构 `iphoneos-arm64e`，本次 Mach-O 为 arm64e
+- 1.0.30 历史包：普通 Dopamine rootless，包架构 `iphoneos-arm64`
 - 需要 `mobilesubstrate`
 
 ## 安装
 
-下载 `ayao.hidedoubaopip_1.0.30_iphoneos-arm64.deb` 后安装，安装完成后重载 SpringBoard，并重新打开一次豆包输入法。
+RootHide 设备使用 `packages/ayao.hidedoubaopip_1.0.31_iphoneos-arm64e.deb`；安装后重载 SpringBoard，并重新打开豆包输入法。
 
-仓库内对应安装包路径：`plugins/hide-doubao-pip/packages/ayao.hidedoubaopip_1.0.30_iphoneos-arm64.deb`。
+普通 Dopamine rootless 仍使用历史 `packages/ayao.hidedoubaopip_1.0.30_iphoneos-arm64.deb`，不要交叉安装。
 
 > 如果设备上已经安装旧包 `com.dada.hidedoubaopip`，请先卸载旧包后再安装新版；新版 package id 为 `ayao.hidedoubaopip`。
 
 ## 构建
 
 ```sh
-THEOS=/path/to/theos HDBP_DEBUG_LOGS=0 FINALPACKAGE=1 make clean package
+THEOS=/path/to/theos sh scripts/build-roothide.sh
 ```
 
+本次只生成 RootHide 包。`scripts/install-roothide.py` 仅用于已确认身份的 12 mini，交互式读取 sudo 密码，不保存凭据；安装前双端备份并校验 Filter 范围和隔离配置。
+
 ## 版本说明
+
+### 1.0.31（RootHide，移除诊断版）
+
+- 保留 1.0.31~debug2 的整屏截图兼容修复、双向转场遮罩、PiP 隐藏和原生语音链路，不回退到 1.0.30。
+- 移除窗口枚举、场景状态和单调时间等详细诊断代码；只保留有上限的低频功能日志，无轮询或常驻任务。
+- 统一源码、control 和当前包版本为 1.0.31；不修改 14PM 及其他插件。
+- 用户反馈消息编辑框基本正常，搜索框与编辑框表现不同。搜索框兼容性仍未全面验收，不能承诺所有场景无问题；GUI 平台明确拒绝本账号的 iOS 自动化权限，没有完整自动验收结果。
+- debug1/debug2 的旧归档已按用户要求清理。活动插件目录保留正式源码、正式包和必要发布记录，不再保留旧诊断包。
+- 当前构建已完成；正式版实机安装及加载结果记录在 `evidence/release-1.0.31/`，以实际回读为准。
 
 ### 1.0.30
 

@@ -1,0 +1,43 @@
+--- tested-dev2/AutoSkipGuard.m
++++ release/AutoSkipGuard.m
+@@ -190,7 +190,9 @@
+     format.scale = scale;
+     format.opaque = YES;
+     format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
++#if ASG_DIAGNOSTICS
+     double start = ASGNow();
++#endif
+     UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:roi.size format:format];
+     __block BOOL drawn = NO;
+     UIImage *image = [renderer imageWithActions:^(UIGraphicsImageRendererContext *r) {
+@@ -206,8 +208,10 @@
+             }
+         } else drawn = [context drawViewHierarchyInRect:context.bounds afterScreenUpdates:NO];
+     }];
++#if ASG_DIAGNOSTICS
+     double duration = ASGNow() - start;
+     ASGDiagnostic(@"roi_render", @{@"drawn": @(drawn), @"image": @(image.CGImage != NULL), @"durationMS": @(duration * 1000)});
++#endif
+     // Capture work cannot be preempted at 8ms; throwing away a usable 30ms image wastes
+     // that work and disables the only fallback. Bound request count, not just frame time.
+     *valid = drawn && image.CGImage;
+@@ -883,7 +887,9 @@
+             Class handlerClass = vision ? NSClassFromString(@"VNImageRequestHandler") : Nil;
+             id request = [requestClass new];
+             NSMutableArray<NSDictionary *> *matches = [NSMutableArray array];
++#if ASG_DIAGNOSTICS
+             unsigned rawMatches = 0;
++#endif
+             BOOL truncated = NO;
+             BOOL ok = NO;
+             @try {
+@@ -903,7 +909,9 @@
+                         id result = [text firstObject]; NSString *string = [result valueForKey:@"string"];
+                         ASGActionKind kind = ASGActionForOCRText(string);
+                         if (kind == ASGActionNone || ASGUnsafeActionText(string) || [[result valueForKey:@"confidence"] floatValue] < .25) continue;
++#if ASG_DIAGNOSTICS
+                         rawMatches++;
++#endif
+                         CGRect box = [[observation valueForKey:@"boundingBox"] CGRectValue];
+                         if (!ASGRectValid(box.origin.x, box.origin.y, box.size.width, box.size.height)) continue;
+                         CGRect rect = CGRectMake(region.origin.x + box.origin.x * region.size.width,
