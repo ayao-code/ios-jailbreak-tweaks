@@ -18,7 +18,7 @@
 
 适用于 iOS 16 Dopamine rootless 越狱环境。安装后可以在系统设置中通过 `AiPowerButton` 配置长按关机键启动豆包或 DeepSeek 语音助手。
 
-当前保留的最新版安装包为 `1.0.1`。
+当前保留的最新版安装包为 `1.0.5`，普通 rootless 与 RootHide 包分别保留。
 
 - 豆包模式：长按关机键启动豆包语音输入，发送由用户在豆包内手动完成。
 - DeepSeek 模式：长按关机键开始语音输入，松开关机键后自动发送。
@@ -30,7 +30,7 @@
 
 适用于 iOS 16 Dopamine rootless 越狱环境。安装后隐藏豆包输入法创建的 PiP 悬浮窗，通过透明化渲染层保留 PiP 会话；冷启动必须短暂前台激活豆包时，使用双向 App-to-App 事务遮罩隐藏切换并返回原应用。
 
-当前稳定版为 `1.0.30`；除隐藏豆包 PiP 和启用原生失效恢复外，还在冷启动语音时使用当前界面截图遮罩，等待前向语音会话与反向返回事务完整完成后再撤罩，使文字回传和松键停止继续走豆包原生链路。带 `~test` 或 `~debug` 后缀的安装包仅用于故障定位，不作为正式稳定版。
+当前正式源码为 `1.0.31`，修复整屏截图遮罩兼容性并移除详细诊断。两台手机的已安装版本分别为：14PM `1.0.30`、12 mini `1.0.31`；整理仓库不会升级手机。带 `~test` 或 `~debug` 后缀的安装包仅用于故障定位，不作为正式稳定版。
 
 - SpringBoard 模块只处理系统 PiP 窗口；无跳转模块只注入豆包主 App 与键盘扩展。
 - 优先通过豆包输入法 bundle/process 识别目标 PiP。
@@ -48,13 +48,25 @@
 
 路径：[`plugins/photos-recents-sort`](plugins/photos-recents-sort)
 
-该目录当前保留从已安装包分析后恢复的行为级源码骨架和对应安装包，用于继续恢复相册增强功能。`reconstructed/` 不等同于已完整恢复的原始源码，且当前目录还不能作为完整 Theos 项目直接构建。
+该目录保留相册增强的行为级恢复源码、可维护的 CR3 兼容和控制中心模块，当前包版本 `0.2.9`。原核心仍复用基础包中的二进制，`reconstructed/` 不等同于完整原始源码；必须保留打包所需的基础包。
 
-### XianYuAdCleaner
+### 其他保留插件
 
-路径：[`plugins/xianyu-ad-cleaner`](plugins/xianyu-ad-cleaner)
+- `plugins/feilian-control-center/`：飞连 VPN 控制中心，当前包 1.2.0。
+- `plugins/lock-audio-profiles/`：锁屏音频配置，当前包 0.1.18。
+- `plugins/lock-low-power/`：锁屏低电量，当前包 1.2.2。
+- `plugins/auto-skip-guard/`：广告跳过插件，保留正式 0.4.6、源码和手机仍使用的诊断版本。正式构建未重新做实机验收，不代表所有 App 通过。
+- `plugins/folder-cover-compat/`：文件夹封面兼容模块，保留源码和当前包，当前两机未查到安装记录。
 
-该目录当前只有 `.theos/` 构建痕迹和 `packages/` 下的 `0.1.0` 安装包，尚未补回正式源码，属于待恢复项目；在源码补齐前不能进行可维护的功能修改。
+闲鱼广告清理和 Crane RootHide 兼容插件已按用户要求移除。
+
+## 保留工具
+
+- `app/`：CR3 Companion、隔离诊断助手、淘宝只读诊断助手、TrollStore 批量迁移、AutoSkip 受控场景、CloneStudio 和 TrollDecrypt。保留源码、许可证和必要交付包，不保留原始设备导出。
+- `scripts/migration/`：定向设备迁移源码；历史备份已清理，不能直接重放旧迁移。
+- `scripts/tools/`：照片迁移与恢复、排序审计、设备网络与文件下载、专注模式查询、插件偏好和动态库静态审计工具。
+
+清理只移除缓存、过期包和一次性资料，保留源码、资源、当前包及必要构建输入。PhotosRecentsSort 的 0.2.6 包仍是当前打包输入，不能删除。
 
 ## 仓库结构
 
@@ -85,15 +97,11 @@ plugins/
 │   ├── DoubaoNoJump.plist
 │   ├── changelog
 │   └── packages/
-├── photos-recents-sort/
-│   ├── README.md
-│   ├── control
-│   ├── reconstructed/
-│   └── packages/
-└── xianyu-ad-cleaner/
-    ├── packages/
-    ├── .theos/
-    └── 待补正式源码
+└── photos-recents-sort/
+    ├── README.md
+    ├── control
+    ├── reconstructed/
+    └── packages/
 ```
 
 ## 项目规范
@@ -114,6 +122,7 @@ plugins/
 - 监听、定时器、线程及其他资源必须具有明确生命周期，并在不再需要时及时停止或释放。
 - 如果存在 `Preferences/`，其源码、配置、资源和展示内容必须与当前最新版插件保持一致。
 - 无法完成实机稳定性、CPU、内存和续航验证时，必须明确记录未验证项和潜在风险。
+- 直接修改设备配置时必须遵守 `DEVICE_CONFIG_SAFETY.md`：保留原格式、双重备份、语义比较、暂存后原子替换、设备回读及崩溃检查；RootHide 配置不得转换为 binary plist。
 
 ## 新增插件规范
 

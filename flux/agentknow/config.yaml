@@ -1,0 +1,33 @@
+version: "1.0"
+tech_stack: "backend"
+subscriptions:
+  - id: "knowledge_go_backend_spec_library"
+    name: "knowledge_go_backend_spec_library"
+    source: "default"
+    status: "active"
+    subscribed_at: "2026-11-03T03:00:55.500Z"
+    unsubscribed_at: null
+  - id: "knowledge_go_backend_middleware_storage_spec_library"
+    name: "knowledge_go_backend_middleware_storage_spec_library"
+    source: "default"
+    status: "active"
+    subscribed_at: "2026-11-03T03:00:55.500Z"
+    unsubscribed_at: null
+  - id: "knowledge_python_spec_library"
+    name: "knowledge_python_spec_library"
+    source: "default"
+    status: "active"
+    subscribed_at: "2026-11-03T03:00:55.500Z"
+    unsubscribed_at: null
+  - id: "knowledge_c_cpp_security_spec_library"
+    name: "knowledge_c_cpp_security_spec_library"
+    source: "default"
+    status: "active"
+    subscribed_at: "2026-11-03T03:00:55.500Z"
+    unsubscribed_at: null
+  - id: "knowledge_testing_spec_library"
+    name: "knowledge_testing_spec_library"
+    source: "default"
+    status: "active"
+    subscribed_at: "2026-11-03T03:00:55.500Z"
+    unsubscribed_at: null
