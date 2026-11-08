@@ -1,0 +1,8 @@
+Package: com.ayao.clonestudio
+Name: CloneStudio
+Version: 0.1.0-preview4
+Architecture: iphoneos-arm
+Description: iOS App duplicator for TrollStore
+Maintainer: 巴斯.zznQ
+Author: 巴斯.zznQ
+Section: Utilities

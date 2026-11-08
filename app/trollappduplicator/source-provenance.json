@@ -1,0 +1,12 @@
+{
+  "repo": "https://github.com/ac0d3r/TrollAppDuplicator",
+  "head_observed": "6a271ed27c8e39fef4be18e88cdab868244ceef7",
+  "source_archive_sha256": "f6695b4022fb0275106001f6c23c77ed0e90cc41d7b7a19c6facb13fe98dab05",
+  "version": "1.2.1-local1",
+  "changes": [
+    "Populate app encryption flag",
+    "Fail closed on malformed encryption headers",
+    "Mark local version and arm64 device requirement"
+  ],
+  "target_app_modifications": false
+}

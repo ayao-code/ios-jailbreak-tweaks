@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>zh_CN</string>
+	<key>CFBundleDisplayName</key>
+	<string>安全域扩展验证</string>
+	<key>CFBundleExecutable</key>
+	<string>SafeDomainProbeShare</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.ayao.safedomainprobe.share</string>
+	<key>CFBundleName</key>
+	<string>SafeDomainProbeShare</string>
+	<key>CFBundlePackageType</key>
+	<string>XPC!</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.6</string>
+	<key>CFBundleVersion</key>
+	<string>7</string>
+	<key>MinimumOSVersion</key>
+	<string>16.0</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>NSExtensionActivationRule</key>
+			<dict>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+			</dict>
+		</dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.share-services</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>SDPShareViewController</string>
+	</dict>
+</dict>
+</plist>

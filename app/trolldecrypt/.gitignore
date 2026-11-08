@@ -1,0 +1,8 @@
+.theos/
+packages/*
+!packages/*.tipa
+*.DS_Store
+Payload/
+TrollDecrypt.tipa
+_assetbuild/
+dist/

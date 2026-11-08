@@ -1,0 +1,12 @@
+{
+  "source": "https://github.com/donato-fiore/TrollDecrypt/releases/tag/v1.2.4",
+  "asset_url": "https://github.com/donato-fiore/TrollDecrypt/releases/download/v1.2.4/TrollDecrypt.tipa",
+  "expected_sha256": "7630fa934f2966cc0b4060024e4e26bad89643492e7325d622309f0ad60a0afc",
+  "download_sha256": "7630fa934f2966cc0b4060024e4e26bad89643492e7325d622309f0ad60a0afc",
+  "sha256_matches_github_release": true,
+  "bytes": 3457252,
+  "bundle_id": "com.fiore.trolldecrypt",
+  "version": "1.2.4",
+  "original_tool_asset_unmodified": true,
+  "target_apps_not_processed": true
+}

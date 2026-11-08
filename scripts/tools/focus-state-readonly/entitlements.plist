@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>platform-application</key><true/>
+<key>com.apple.private.donotdisturb.modeconfiguration.request.client-identifiers</key>
+<array><string>com.apple.FocusSettings</string></array>
+<key>com.apple.private.donotdisturb.state.request.client-identifiers</key>
+<array><string>com.apple.FocusSettings</string></array>
+</dict></plist>

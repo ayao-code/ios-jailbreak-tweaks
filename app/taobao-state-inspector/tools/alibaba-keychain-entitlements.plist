@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+    <key>platform-application</key><true/>
+    <key>com.apple.private.security.no-sandbox</key><true/>
+    <key>keychain-access-groups</key><array>
+        <string>VJGTV94XY8.com.taobao.taobao4iphone</string>
+        <string>8H6B3SFEU4.com.ali.group</string>
+        <string>Q9J7SWGUN4.com.taobao.tmall</string>
+        <string>FFJNMLHK32.cn.damai.iphone</string>
+        <string>43Y657P48S.com.taobao.fleamarket</string>
+        <string>6TFXDT6MK5.com.quark.browser</string>
+        <string>Q6552JDTRL.com.autonavi.utdid</string>
+        <string>LJUJZGPE73.smartdrive.shared</string>
+        <string>MYV5GKGP85.com.taobao.live</string>
+        <string>VJGTV94XY8.com.taobao.etaocoupon</string>
+        <string>VMSRGD9Q5D.com.alimama.moon</string>
+        <string>H27CPCASR4.com.wdk.hmxs</string>
+    </array>
+</dict></plist>

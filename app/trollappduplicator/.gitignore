@@ -1,0 +1,14 @@
+.theos/
+packages/*
+!packages/*.tipa
+.DS_Store
+
+packages/*
+!packages/*.tipa
+Payload/
+TrollAppDuplicator.tipa
+
+# clangd
+.vscode/
+.cache/
+compile_commands.json

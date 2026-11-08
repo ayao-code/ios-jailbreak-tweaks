@@ -1,0 +1,34 @@
+[
+  {
+    "address": "0x201da7070",
+    "constant": "kCADisplayName"
+  },
+  {
+    "address": "0x201da7090",
+    "constant": "kCADisplayDeviceName"
+  },
+  {
+    "address": "0x201da70d0",
+    "constant": "kCADisplayFrameCount"
+  },
+  {
+    "address": "0x201da70f0",
+    "constant": "kCADisplaySkippedFrameCount"
+  },
+  {
+    "address": "0x201da7110",
+    "constant": "kCADisplayClonedFrameCount"
+  },
+  {
+    "address": "0x201da7130",
+    "constant": "kCADisplaySkippedClonedFrameCount"
+  },
+  {
+    "address": "0x201da7150",
+    "constant": "kCADisplayDirtyFrameCount"
+  },
+  {
+    "address": "0x1aafd4475",
+    "format": "%s display:\n\tTotal Frames:\t\t%d\n\tSkipped Frames:\t\t%d\n\tTotal Cloned Frames:\t%d\n\tSkipped Cloned Frames:\t%d\n\tNon-Dirty Frames:\t%d\n\n"
+  }
+]

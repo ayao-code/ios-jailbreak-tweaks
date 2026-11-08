@@ -1,0 +1,9 @@
+Package: com.ayao.trollstorebatchmigrator
+Name: TrollStore Batch Migrator
+Version: 1.1.2
+Architecture: iphoneos-arm64
+Description: One-time, offline installer for 31 manifest-verified TrollStore apps.
+Maintainer: ayao
+Author: ayao
+Section: Utilities
+Depends: firmware (>= 16.0)
