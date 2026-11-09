@@ -1,0 +1,30 @@
+{
+  "package": "ayao.aipowerbutton_1.0.6~test8+volumedebug1_iphoneos-arm64e.deb",
+  "sha256": "c6d010fef0ddb31d755b5957c616f0d78567431b3a86f1dabb37a88943287d00",
+  "bytes": 36016,
+  "changed_payload_vs_test8": [
+    "Library/PreferenceBundles/DoubaoPowerButtonPrefs.bundle/DoubaoPowerButtonPrefs",
+    "Library/PreferenceBundles/DoubaoPowerButtonPrefs.bundle/Info.plist",
+    "Library/MobileSubstrate/DynamicLibraries/DoubaoPowerButton.dylib",
+    "Library/MobileSubstrate/DynamicLibraries/DeepSeekVoiceHelper.dylib",
+    "Library/MobileSubstrate/DynamicLibraries/DoubaoAppVoiceHelper.dylib"
+  ],
+  "recompiled_binaries_verified_instruction_equal": [
+    "Library/PreferenceBundles/DoubaoPowerButtonPrefs.bundle/DoubaoPowerButtonPrefs",
+    "Library/MobileSubstrate/DynamicLibraries/DeepSeekVoiceHelper.dylib",
+    "Library/MobileSubstrate/DynamicLibraries/DoubaoAppVoiceHelper.dylib"
+  ],
+  "filters_and_settings_equal_test8": true,
+  "preferences_selected_volumeDown": true,
+  "diagnostic_max_events": 64,
+  "diagnostic_max_bytes": 32768,
+  "changes_gesture_logic": false,
+  "installs_extra_side_diagnostic_hooks": false,
+  "installed": true,
+  "diagnostic_path": "/var/mobile/Documents/aipb-volume-test8.jsonl",
+  "prior_test8_installation_preserved": true,
+  "installation_readback": "backups/aipb-volume-diagnostic-20261109-015642/installation-readback.json",
+  "runtime_volume_hook_gate_passed": true,
+  "initial_volume_action_permitted": true,
+  "physical_event_flow_verified": false
+}

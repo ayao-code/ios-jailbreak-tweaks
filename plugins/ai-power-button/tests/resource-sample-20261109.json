@@ -1,0 +1,17 @@
+{
+  "scope": "Whole SpringBoard with diagnostic tweak; no attributable tweak-only or controlled idle baseline",
+  "duration_seconds": 33.05731900000683,
+  "average_single_core_cpu_percent": 0.005280760971570742,
+  "resident_mib_range": [
+    106.65625,
+    106.671875
+  ],
+  "footprint_mib_range": [
+    103.7994384765625,
+    103.8463134765625
+  ],
+  "process_idle_wakeups_delta": 3,
+  "process_disk_bytes_written_delta": 0,
+  "battery_energy_measured": false,
+  "samples": 12
+}

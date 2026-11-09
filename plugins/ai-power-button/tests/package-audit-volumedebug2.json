@@ -1,0 +1,24 @@
+{
+  "package": "ayao.aipowerbutton_1.0.6~test9+volumedebug2_iphoneos-arm64e.deb",
+  "version": "1.0.6~test9+volumedebug2",
+  "sha256": "134cb7e611c02247f276f2e9e129dfc3549b6dc3b27c6a08ef7871a7142e456c",
+  "bytes": 36500,
+  "installed": true,
+  "fix_scope": "Read validated native isButtonDown to reconcile a locally observed side-key latch; no timeout clearing of unknown held key",
+  "camera_dispatch_code_unchanged": true,
+  "voice_helper_instruction_bytes_unchanged": true,
+  "filter_and_settings_bytes_unchanged": true,
+  "double_press_timing_unchanged": true,
+  "native_getter_unknown_fails_closed": true,
+  "test_results": {
+    "camera_matrix": 9216,
+    "camera_boundaries": 8,
+    "volume_matrix": 40,
+    "native_side_gate_combinations": 8,
+    "native_release_missing_final_up_regression": true
+  },
+  "locked_camera_foreground_verified": false,
+  "diagnostic_log": "/var/mobile/Documents/aipb-volume-test9.jsonl",
+  "springboard_reload_verified": true,
+  "installation_readback": "backups/aipb-volume-lockfix-20261109-021028/installation-readback.json"
+}

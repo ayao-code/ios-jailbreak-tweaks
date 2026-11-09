@@ -6,9 +6,10 @@ INSTALL_TARGET_PROCESSES = SpringBoard
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = DoubaoPowerButton DoubaoAppVoiceHelper DeepSeekVoiceHelper
-DoubaoPowerButton_FILES = Tweak.xm
-DoubaoPowerButton_CFLAGS = -fobjc-arc
+DoubaoPowerButton_FILES = Tweak.xm CameraShortcut.m CameraDiagnostics.m Shared/AYCameraPolicy.c
+DoubaoPowerButton_CFLAGS = -fobjc-arc -DAYCAMERA_DIAGNOSTICS=$(or $(AYCAMERA_DIAGNOSTICS),0) -DAYVOLUME_DIAGNOSTICS=$(or $(AYVOLUME_DIAGNOSTICS),0)
 DoubaoPowerButton_FRAMEWORKS = Foundation UIKit
+DoubaoPowerButton_PRIVATE_FRAMEWORKS = SpringBoardServices
 
 DoubaoAppVoiceHelper_FILES = DoubaoAppVoiceHelper.xm
 DoubaoAppVoiceHelper_CFLAGS = -fobjc-arc

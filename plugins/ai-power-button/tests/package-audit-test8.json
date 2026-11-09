@@ -1,0 +1,27 @@
+{
+  "package": "ayao.aipowerbutton_1.0.6~test8_iphoneos-arm64e.deb",
+  "version": "1.0.6~test8",
+  "architecture": "iphoneos-arm64e",
+  "sha256": "332aac6cbd0b3298c92bd75b8636f5bdf04fc5844b2dcc69ff0c58f587397abb",
+  "filters_unchanged": {
+    "DoubaoPowerButton": "com.apple.springboard",
+    "DoubaoAppVoiceHelper": "com.bot.doubao",
+    "DeepSeekVoiceHelper": "com.deepseek.chat"
+  },
+  "voice_helper_code_unchanged": true,
+  "home_hook_removed": true,
+  "trigger_options": [
+    "side",
+    "volumeDown"
+  ],
+  "camera_policy_matrix_cases": 9216,
+  "camera_policy_boundary_cases": 8,
+  "volume_timing_cases": 40,
+  "sanitizers": "address,undefined",
+  "built": true,
+  "installed": true,
+  "physical_volume_key_and_system_chords_verified": false,
+  "bytes": 33578,
+  "installation_readback": "backups/aipb-volume-down-20261109-013756/installation-readback.json",
+  "springboard_reload_verified": true
+}

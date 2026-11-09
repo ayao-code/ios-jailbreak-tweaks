@@ -11,6 +11,8 @@
 			<string>AiPowerButton</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>ayao.aipowerbutton/preferences.changed</string>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
@@ -21,24 +23,22 @@
 			<string>enabled</string>
 			<key>label</key>
 			<string>启用插件</string>
-			<key>PostNotification</key>
-			<string>ayao.aipowerbutton/preferences.changed</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>ayao.aipowerbutton/preferences.changed</string>
 			<key>cell</key>
 			<string>PSLinkListCell</string>
-			<key>detail</key>
-			<string>PSListItemsController</string>
 			<key>default</key>
 			<string>doubao</string>
 			<key>defaults</key>
 			<string>ayao.aipowerbutton</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
 			<key>key</key>
 			<string>provider</string>
 			<key>label</key>
 			<string>启动应用</string>
-			<key>PostNotification</key>
-			<string>ayao.aipowerbutton/preferences.changed</string>
 			<key>validTitles</key>
 			<array>
 				<string>豆包</string>
@@ -55,6 +55,74 @@
 			<string>PSGroupCell</string>
 			<key>footerText</key>
 			<string>选择豆包或 DeepSeek 后，长按关机键开始语音输入，松开后结束录音并发送；音量键加关机键仍保留系统原始关机操作。</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>与长按AI独立开关。侧边双击开启后替代Apple Pay双击；音量下连续两次短按松开打开相机，原调低音量事件仍保留。Home原行为不接管；音量+侧键关机/SOS保留。</string>
+			<key>label</key>
+			<string>双击按键打开相机</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>ayao.aipowerbutton/preferences.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>ayao.aipowerbutton</string>
+			<key>key</key>
+			<string>cameraDoublePressEnabled</string>
+			<key>label</key>
+			<string>启用双击打开相机</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>ayao.aipowerbutton/preferences.changed</string>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<string>side</string>
+			<key>defaults</key>
+			<string>ayao.aipowerbutton</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>key</key>
+			<string>cameraTrigger</string>
+			<key>label</key>
+			<string>触发按键</string>
+			<key>validTitles</key>
+			<array>
+				<string>侧边电源键</string>
+				<string>音量下键</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>side</string>
+				<string>volumeDown</string>
+			</array>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>ayao.aipowerbutton/preferences.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>ayao.aipowerbutton</string>
+			<key>key</key>
+			<string>cameraOnLockScreen</string>
+			<key>label</key>
+			<string>锁屏时使用系统受限相机</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>锁屏相机只走系统CoverSheet，不解锁、不开放历史照片；接口或锁状态未知时保留原动作。默认关闭，实机验证后开启。</string>
 		</dict>
 	</array>
 	<key>title</key>

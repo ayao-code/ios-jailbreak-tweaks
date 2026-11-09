@@ -1,0 +1,73 @@
+{
+  "package": "ayao.aipowerbutton_1.0.6_iphoneos-arm64e.deb",
+  "version": "1.0.6",
+  "architecture": "iphoneos-arm64e",
+  "sha256": "b4cb93c236a48fd813b7c7ae44a29991c0f7d3bfe751d337cccfa9e8f131b625",
+  "bytes": 34754,
+  "built": true,
+  "installed": true,
+  "published": false,
+  "scope": "Release build of user-confirmed test10 camera behavior; only diagnostic removal/version synchronization in this round",
+  "settings_and_filters_unchanged": true,
+  "filters": {
+    "DoubaoPowerButton": "com.apple.springboard",
+    "DoubaoAppVoiceHelper": "com.bot.doubao",
+    "DeepSeekVoiceHelper": "com.deepseek.chat"
+  },
+  "voice_helper_instruction_bytes_equal_debug": true,
+  "diagnostic_log_strings_absent": true,
+  "diagnostic_IO_and_NSLog_imports_absent": true,
+  "diagnostic_arguments_not_evaluated": true,
+  "extra_diagnostic_hooks_absent": true,
+  "successful_debug_hardware_evidence": {
+    "user_confirmed": true,
+    "wake_to_display_ready_ms": 62.11904166411841,
+    "locked_camera_request": {
+      "event": "camera_dispatched",
+      "details": {
+        "locked": true
+      },
+      "uptime": 45815.70745066667
+    }
+  },
+  "release_runtime_hardware_tested": false,
+  "long_duration_battery_tested": false,
+  "tests": {
+    "camera_matrix": 9216,
+    "camera_boundaries": 8,
+    "volume_matrix": 40,
+    "side_gates": 8,
+    "wake_gates": 128
+  },
+  "runtime_resource_sample": {
+    "scope": "Whole SpringBoard with diagnostic tweak; no attributable tweak-only or controlled idle baseline",
+    "duration_seconds": 33.05731900000683,
+    "average_single_core_cpu_percent": 0.005280760971570742,
+    "resident_mib_range": [
+      106.65625,
+      106.671875
+    ],
+    "footprint_mib_range": [
+      103.7994384765625,
+      103.8463134765625
+    ],
+    "process_idle_wakeups_delta": 3,
+    "process_disk_bytes_written_delta": 0,
+    "battery_energy_measured": false,
+    "samples": 12
+  },
+  "full_flux_sdt_completed": false,
+  "diagnostic_arguments_not_evaluated_test": "tests/diagnostics_disabled_test.m compiled with actual CameraDiagnostics.h",
+  "source_sha256": {
+    "Tweak.xm": "f4271f02184e5deeed0151c62aa29d11f5c4389c32b3276ece9ce1fc5c40fa20",
+    "CameraShortcut.m": "a83f5225be95e972551f41a87a891a34ef64cb209a9862d25b392b785d043267",
+    "CameraDiagnostics.h": "63bff660af8f93605b916d58d137fd0f842f2969e5eeb2531822b7e6e8e9fb8a",
+    "Shared/AYCameraPolicy.c": "6a255c6bd9e37df765f7ec233233606ee7f65bbe67310b5ceda95aec743000f4",
+    "control": "294cebafd962849f4350f349e0a468e3e40e434178372affabe73c8df41432b1",
+    "Preferences/Resources/Info.plist": "10da0512e78f867216f1dbb4a4c64c05ef96d5490579b5ffb7152a66656f8e23"
+  },
+  "installation_readback": "backups/aipb-release-1.0.6-20261109-104021/installation-readback.json",
+  "release_loaded_code_verified": true,
+  "preferences_and_roothide_preserved": true,
+  "diagnostic_log_unchanged_after_release_reload": true
+}

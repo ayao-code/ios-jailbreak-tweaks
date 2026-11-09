@@ -1,0 +1,64 @@
+[
+  {
+    "file": "ayao.aipowerbutton_1.0.6~test3_iphoneos-arm64.deb",
+    "bytes": 29738,
+    "version": "1.0.6~test3",
+    "architecture": "iphoneos-arm64",
+    "sha256": "b90787f2a11aa4d738cbde29b36db1d9a7dc06862ba31b8e6ac79e4a61f20ce5",
+    "filters": {
+      "DoubaoPowerButton.plist": {
+        "Filter": {
+          "Bundles": [
+            "com.apple.springboard"
+          ]
+        }
+      },
+      "DeepSeekVoiceHelper.plist": {
+        "Filter": {
+          "Bundles": [
+            "com.deepseek.chat"
+          ]
+        }
+      },
+      "DoubaoAppVoiceHelper.plist": {
+        "Filter": {
+          "Bundles": [
+            "com.bot.doubao"
+          ]
+        }
+      }
+    },
+    "preferencesVersion": "1.0.6~test3"
+  },
+  {
+    "file": "ayao.aipowerbutton_1.0.6~test3_iphoneos-arm64e.deb",
+    "bytes": 29738,
+    "version": "1.0.6~test3",
+    "architecture": "iphoneos-arm64e",
+    "sha256": "0c603caa2c0f3861d8fbb476194f377ec83093e49ff39d15fb8e4f2c0fb12274",
+    "filters": {
+      "DoubaoPowerButton.plist": {
+        "Filter": {
+          "Bundles": [
+            "com.apple.springboard"
+          ]
+        }
+      },
+      "DeepSeekVoiceHelper.plist": {
+        "Filter": {
+          "Bundles": [
+            "com.deepseek.chat"
+          ]
+        }
+      },
+      "DoubaoAppVoiceHelper.plist": {
+        "Filter": {
+          "Bundles": [
+            "com.bot.doubao"
+          ]
+        }
+      }
+    },
+    "preferencesVersion": "1.0.6~test3"
+  }
+]
