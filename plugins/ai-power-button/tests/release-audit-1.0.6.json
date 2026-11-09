@@ -6,7 +6,7 @@
   "bytes": 34754,
   "built": true,
   "installed": true,
-  "published": false,
+  "published": true,
   "scope": "Release build of user-confirmed test10 camera behavior; only diagnostic removal/version synchronization in this round",
   "settings_and_filters_unchanged": true,
   "filters": {
