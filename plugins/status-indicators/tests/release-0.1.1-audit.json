@@ -1,0 +1,79 @@
+{
+  "version": "0.1.1",
+  "architecture": "iphoneos-arm64e",
+  "package": "packages/ayao.statusindicators_0.1.1_iphoneos-arm64e.deb",
+  "bytes": 51230,
+  "sha256": "5e22c1c7696ac652bae3dee9e8a0ec50042953209ccae551c21a4f8b9b56a972",
+  "logic_source_unchanged_from_config1": true,
+  "binary_code_comparison": {
+    "Library/MobileSubstrate/DynamicLibraries/StatusIndicators.dylib": {
+      "text_identical_to_config1": true,
+      "text_bytes": 38900,
+      "text_sha256": "3b0bb3dada2d1a68e7667a7778c57a8ed2536c2d3d805dbaab6c428eab37a8bb"
+    },
+    "Library/PreferenceBundles/StatusIndicatorsPrefs.bundle/StatusIndicatorsPrefs": {
+      "text_identical_to_config1": true,
+      "text_bytes": 29964,
+      "text_sha256": "64a9a34009a1e84392b059cb77e06ae9fd82baf70a3177edb221448356100970"
+    }
+  },
+  "filter": "com.apple.springboard only",
+  "configuration_schema_version": 1,
+  "recursive_package_privacy_scan_passed": true,
+  "user_acceptance": {
+    "version": "0.1.0+config1",
+    "verbatim": "好的，现在整体都没问题。",
+    "source": "user statement, not independently observed full UI coverage"
+  },
+  "local_tests_passed": true,
+  "formal_package_installed": false,
+  "github_published": false,
+  "git_committed": false,
+  "ordinary_rootless_rebuilt": false,
+  "independent_tweak_resource_measurement": false,
+  "source_sha256": {
+    "SIItemViews.h": "5f1baf5f87215834ef0ae8f2a100546f33d20bed92b09f44210145a59bbc412d",
+    "SIConfiguration.h": "bfd34108404d3c8c56556496c8598510f604980c6d4b198e9f48435c9e6907fc",
+    "Tweak.xm": "eaf77374dbe3e2091d9ae02d743386a838c6dbe3172c7a8ea5f8cf45d4af8b90",
+    "SISettingsStore.m": "0941af9aa536564fa9bee2030d4447fe6a3732e7d405e74246a2d2c6587618d3",
+    "SIFocusMonitor.m": "b95f5a1aee21970ef3323c5ac81ae7fb45d061867fa2605c2edd86579133813f",
+    "SIController.m": "d5e419dd2f0e7f5cf8b0cb99e7a1e01862793f3bfb20a87eba77330d58c71cd3",
+    "SIItemViews.m": "1bb33e440d5100c81bbc22404404dc253c96faa91c4787c84dc9a24164e61198",
+    "SIConfiguration.m": "49a9d84be8d271e10965b80be092f139df1692dd1eab45254c158fc531da18c5",
+    "SISettingsStore.h": "cbed190b3192db4923e4f00f5497d04913e6b77a5d1616d2de5064aa4332512e",
+    "SIController.h": "f7bc363b28d9b79a6ae2bca26fcf0b44eca772f41054f014efad60f17d24a6f5",
+    "SIFocusMonitor.h": "f372f5866e1d17b09d0653cc253284d8064ab59c08e78ce851ec5a6110f90542",
+    "Preferences/SIPreviewController.m": "e85da5f5b15b5b648570c8f3928518786c313805498f8a7012b774255c00b5f4",
+    "Preferences/SIConfigCodec.h": "9fb31db6fb5651b60ac304cd6a71f248df655432f38cf2d851295e335cfd2c61",
+    "Preferences/SIRootListController.m": "b8c5b6a137cc98915244b885506e43dd6a45b62b1ae0d9402690743180826951",
+    "Preferences/SIPreviewController.h": "481197e8a80da81a8c2e880f65de2c526daef3209c253c07e485da82380b69b9",
+    "Preferences/SIRootListController.h": "9705b0838eea7183ea5db84e735203e4d7cfb1c755512c144ecb940df5d0aaef",
+    "Preferences/SIConfigCodec.m": "3f0a04c494ad36bdaeaf68cd1ec3dbb916be268be3c1b6d8c8777e3f8bced9c3",
+    "tests/rate_test.c": "89d44272f4137f79560f444610d81579d36e9188c6d351b06abf42489703268e",
+    "tests/settings_store_test.m": "11d57c654d442aec88b5c5aa6b1454b02ab18648534c481d2e54ffc4219739a5",
+    "tests/presentation_test.c": "86085c396cbbb73f43a6f184d10f5bae6bad02c11c408d0b800f3f3e1776c808",
+    "tests/focus_monitor_test.m": "387b22adab877c39838e5ec47c61a09bfc90a256cadc6f4328f9238f799c68d9",
+    "tests/config_codec_test.m": "1c3c896126acc0835c4797bac31f8af023f0aac5ec2c74730afda6e721ec9721",
+    "tests/settings_probe.m": "d66d73355415c15b7ad3691d20fea1aaa2ed87390a127e48a9a097d36edc6cfa",
+    "tests/network_probe.c": "09d81443353d8f140b9620c3ce52e65b550618a9388d893a0b1c40195964db63",
+    "Shared/SIRate.h": "d693817244e5fb4ba90834995d84ed661b2454a476475425f81aa4168554195b",
+    "Shared/SIPresentation.c": "f85f9be93ad2ed6e1333b73176b32874e9c4ae0c25e21a6642564292aae6ca0e",
+    "Shared/SINetworkSample.h": "49bdc227bc687aa2a97ac245e7e156c07e970337303cb8a16b35cdc79373ac9c",
+    "Shared/SINetworkSample.c": "3c66087cd0433b2d968aa318ff57152ffc4306650e6f9be8d44b18ade89c6682",
+    "Shared/SIPresentation.h": "d3c61091b2dfcc3905685b037dff1e0b82ea326a0a24f93fd34078ee1393d265",
+    "Shared/SIRate.c": "240ad406b6f84f62e0aee41456cb50316aa75e5137d8fa3b834173b8f0d72a49"
+  },
+  "audit_scope": "Artifact-generation audit; original false fields describe generation-time state. Later installation is recorded in delivery below.",
+  "delivery": {
+    "formal_version_installed_on_two_roothide_devices": true,
+    "running_springboard_on_both": true,
+    "both_main_and_preferences_executable_sections_match_package": true,
+    "first_device_configuration_files_unchanged": 5,
+    "second_device_non_status_configuration_files_unchanged": 4,
+    "second_device_status_configuration_changes_preserved": true,
+    "second_device_status_change_origin": "unattributed; install scripts do not write preferences",
+    "device_ui_acceptance_for_new_device": false,
+    "github_published": false,
+    "independent_tweak_resource_measurement": false
+  }
+}

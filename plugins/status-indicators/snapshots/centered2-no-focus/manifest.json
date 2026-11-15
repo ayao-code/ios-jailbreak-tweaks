@@ -1,0 +1,81 @@
+{
+  "package": "packages/ayao.statusindicators_0.1.0+centered2_iphoneos-arm64e.deb",
+  "version": "0.1.0+centered2",
+  "architecture": "iphoneos-arm64e",
+  "package_sha256": "5bf50a1a0a0a84190bb11a1c40058de1820fc2685b0d1c63fe65eef15004949d",
+  "focus_support": false,
+  "main_tweak_text_matches_original": true,
+  "preferences_rebuilt_not_binary_identical": true,
+  "device_install_this_round": false,
+  "source_origin": "Recovered from pre-Focus session source readback, current unchanged shared inputs and original centered2 package UI resources; no binary decompilation.",
+  "source_files": {
+    "Makefile": "23beda2b934a07f26d032e58607f069bb01ed44be8523411767ebc6a7b240639",
+    "Preferences/Makefile": "6d3982391e2496e1392fcba96e102c04e8c8e3f4d7b6ae07813d226d119fd075",
+    "Preferences/Resources/Appearance.plist": "0422df73a76235d4cb52e58bde63b7c54947c28889e56b8082aa548040d4bc58",
+    "Preferences/Resources/Info.plist": "b4b7e30622e064810e25af8f8efc8fb0699b40b319371d550ee106b292e05d37",
+    "Preferences/Resources/Landscape.plist": "060b33c27575c3e11fe84c7d3babdc449078c406f9781dae9a118e23965aa325",
+    "Preferences/Resources/Mute.plist": "ee9f8889b22e2e634bd166d7d10a0554b6d3ca42867732647ac1808ce185beef",
+    "Preferences/Resources/Root.plist": "98f49138d6416ae6ffb699d791d9e659f187cb59a667ae55b2009d11d27fa8af",
+    "Preferences/Resources/Speed.plist": "9405a7137580e9581493e5df6fe1e0bace3395d354b1f37f6cc67e1e51b20151",
+    "Preferences/Resources/VPN.plist": "de17e622715941d71f12a7a3c62bb7cb8eb49f2805979b75ee9f0e6824b26b30",
+    "Preferences/Resources/icon.png": "ca6a30b7573255a9087b9e588b5e2374e2215f4b13d672649ca91b8d02683ce3",
+    "Preferences/Resources/icon@2x.png": "fcb63e4b30825036303cbbbbca1242cefcbb74f4a0983c20e5bf5aa33a709a3d",
+    "Preferences/Resources/icon@3x.png": "1fb25e49f1a6129ac98ea0d90ed2f250fe33811213bb65b02efd5f6980060dc6",
+    "Preferences/SIPreviewController.h": "481197e8a80da81a8c2e880f65de2c526daef3209c253c07e485da82380b69b9",
+    "Preferences/SIPreviewController.m": "0330be15f07119ca2550419f1b659fc9f779d8d17152ec727e04c9abc9331377",
+    "Preferences/SIRootListController.h": "9705b0838eea7183ea5db84e735203e4d7cfb1c755512c144ecb940df5d0aaef",
+    "Preferences/SIRootListController.m": "2e48a1fc575ca1d59c8239228b0adda1e4a37b9ae799d5aebdc94f1d49f20f8d",
+    "SIConfiguration.h": "e49286e6b48df4e832b44f59e2b86b1966a47b40bba7856bb1b5c2723c36fcd3",
+    "SIConfiguration.m": "0ad38f5b40d4fccd3994533518fa29d217b70674f318026b94c9373eb24692d4",
+    "SIController.h": "bebd2cad03b2612b9ca3981bbee0711649b49fa8ddc76c4710dc9cde291060f0",
+    "SIController.m": "f745ebc37c72e3265dc5f139780ff35247279b00e794d9ad17ddc582ff30aa5a",
+    "SIItemViews.h": "18d42c43861105bac801d78b7cff810122b8c1db84dcaedebb76ec7fc66cd069",
+    "SIItemViews.m": "08c0f12c7d811062d1f57e1c95b80e4a0a6645ce4510ec3ab82ee541e592e35e",
+    "SISettingsStore.h": "cbed190b3192db4923e4f00f5497d04913e6b77a5d1616d2de5064aa4332512e",
+    "SISettingsStore.m": "0941af9aa536564fa9bee2030d4447fe6a3732e7d405e74246a2d2c6587618d3",
+    "Shared/SINetworkSample.c": "3c66087cd0433b2d968aa318ff57152ffc4306650e6f9be8d44b18ade89c6682",
+    "Shared/SINetworkSample.h": "49bdc227bc687aa2a97ac245e7e156c07e970337303cb8a16b35cdc79373ac9c",
+    "Shared/SIPresentation.c": "f85f9be93ad2ed6e1333b73176b32874e9c4ae0c25e21a6642564292aae6ca0e",
+    "Shared/SIPresentation.h": "d3c61091b2dfcc3905685b037dff1e0b82ea326a0a24f93fd34078ee1393d265",
+    "Shared/SIRate.c": "232b088d519075b4df42fcbb82b62a5c07b18694f5870c65bd3c2b6faa385e92",
+    "Shared/SIRate.h": "d693817244e5fb4ba90834995d84ed661b2454a476475425f81aa4168554195b",
+    "StatusIndicators.plist": "f0f5f53f83d5a79930ce9b6ee491e6674d911918564049111468f40f625d791f",
+    "Tweak.xm": "5a0fb807af6e1e595c0ee00b3b028b923f0fd6ae7d848b2f24bbc83eb33d8523",
+    "control": "cc19f3fcfc32bf96c3e9045fbb386d0a4bd5879088c2268db8747fa1c5e36b50",
+    "layout/Library/PreferenceLoader/Preferences/StatusIndicators.plist": "a73910bc36ae200dde6e83feb3f35372b0471afa2daf6a8a1e2819e845c635fb"
+  },
+  "sections": {
+    "tweak": {
+      "__text": {
+        "original_bytes": 29596,
+        "rebuilt_bytes": 29596,
+        "identical": true,
+        "original_sha256": "358bf57d804282204891fa7346a11042f6a6c7e2b2f6239a59dd85f2407fba2a",
+        "rebuilt_sha256": "358bf57d804282204891fa7346a11042f6a6c7e2b2f6239a59dd85f2407fba2a"
+      },
+      "__cstring": {
+        "original_bytes": 1406,
+        "rebuilt_bytes": 1406,
+        "identical": true,
+        "original_sha256": "b84ea46a4196325097a7d720c11b351bf19b43871dd5fdd1e80cbf8bbee8094f",
+        "rebuilt_sha256": "b84ea46a4196325097a7d720c11b351bf19b43871dd5fdd1e80cbf8bbee8094f"
+      }
+    },
+    "preferences": {
+      "__text": {
+        "original_bytes": 23784,
+        "rebuilt_bytes": 23784,
+        "identical": false,
+        "original_sha256": "05a2c2be3cd7b2212bae925b2014e5ae1abed28de27bf4dae5dfe5e2eebe7408",
+        "rebuilt_sha256": "2d12017abc78af810f448bca91f25fc2375abe1336b740cff971376f09a2ec74"
+      },
+      "__cstring": {
+        "original_bytes": 1290,
+        "rebuilt_bytes": 1290,
+        "identical": true,
+        "original_sha256": "d9ea9e6e92f4b923d78b3361b02cd65f9ee4d09621d16f16a60cbab5b724bf30",
+        "rebuilt_sha256": "d9ea9e6e92f4b923d78b3361b02cd65f9ee4d09621d16f16a60cbab5b724bf30"
+      }
+    }
+  }
+}

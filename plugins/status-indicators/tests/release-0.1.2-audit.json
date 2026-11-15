@@ -1,0 +1,43 @@
+{
+  "version": "0.1.2",
+  "architecture": "iphoneos-arm64e",
+  "file": "packages/ayao.statusindicators_0.1.2_iphoneos-arm64e.deb",
+  "bytes": 52908,
+  "sha256": "6592efba7e6631a50b5356e6f25808ae9fa73a34e7ffc24647172ed90a2a90bf",
+  "recursive_privacy_check_passed": true,
+  "Filter_only_SpringBoard": true,
+  "diagnostic_paths_and_notification_absent_from_payload": true,
+  "Preferences_version_matches": true,
+  "package_maintainer_scripts_absent": true,
+  "performance": {
+    "on_CPU_percent_one_core": 0.029398182250480326,
+    "off_CPU_percent_one_core": 0.018073851697874975,
+    "on_minus_off_CPU_points": 0.011324330552605351,
+    "on_minus_off_footprint_MiB": 0.01234879032259073,
+    "scope": "four 30s same-process Home Screen rounds; no battery/lifetime claim"
+  },
+  "readback": {
+    "all_regular_payload_files_except_loaded_dylib_byte_equal": true,
+    "loaded_dylib_size": 129648,
+    "loaded_dylib_all_file_backed_section_contents_equal_to_package": true,
+    "loaded_dylib_differing_bytes": 40,
+    "differences_only_text_section_segment_padding_and_first_page_code_hash": true,
+    "current_signature_code_pages_verified": [
+      {
+        "type": 0,
+        "slots": 32,
+        "all_code_page_hashes_valid": true
+      }
+    ],
+    "text_bytes": 41300,
+    "text_sha256": "5a698dc3d7bdca69fceffcfa124193dffb8f5edec34265130d6ce7ee019304b5",
+    "config_after_install_byte_equal": true,
+    "installed_version": "0.1.2",
+    "Filter_only_SpringBoard": true
+  },
+  "untested_boundaries": [
+    "all Apps and both landscape directions",
+    "full multitasking runtime transition",
+    "long-term battery/lifetime performance"
+  ]
+}

@@ -1,0 +1,9 @@
+Package: ayao.statusindicators
+Name: StatusIndicators
+Version: 0.1.0
+Architecture: iphoneos-arm64e
+Description: Lightweight configurable VPN and physical upload/download status display, synchronous settings and no Control Center items.
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader
