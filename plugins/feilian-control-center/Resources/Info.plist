@@ -24,7 +24,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>zh_CN</string>
 	<key>CFBundleDisplayName</key>
-	<string>飞连 VPN</string>
+	<string>VPN 控制中心</string>
 	<key>CFBundleExecutable</key>
 	<string>FeilianControlCenter</string>
 	<key>CFBundleIdentifier</key>
@@ -32,17 +32,17 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>飞连 VPN</string>
+	<string>VPN 控制中心</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.0</string>
+	<string>1.3.1</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>iPhoneOS</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>25</string>
 	<key>MinimumOSVersion</key>
 	<string>16.0</string>
 	<key>NSPrincipalClass</key>

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+/bin/launchctl bootout system/ayao.vpncc-auth >/dev/null 2>&1 || true
+/bin/launchctl bootout user/foreground/ayao.vpncc-auth >/dev/null 2>&1 || true
+rm -f /rootfs/var/run/ayao.vpncc-auth.sock

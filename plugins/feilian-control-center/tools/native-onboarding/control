@@ -1,0 +1,9 @@
+Package: ayao.vpnadapterprobe
+Name: VPN Adapter Onboarding Probe (Test Only)
+Version: 0.1.0~test16
+Architecture: iphoneos-arm64e
+Description: Independent native-entry discovery for Hotspot, GOFast and Jump; not a shipping adapter.
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: firmware (>= 16.0), mobilesubstrate

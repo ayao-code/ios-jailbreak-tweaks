@@ -1,0 +1,9 @@
+Package: ayao.easyvpnnativehelper
+Name: Easy VPN Native Helper (Temporary Test)
+Version: 0.1.0~test1
+Architecture: iphoneos-arm64e
+Description: RootHide-only temporary native button-flow probe; Easy VPN 2.1.0 only.
+Maintainer: ayao
+Author: ayao
+Section: Tweaks
+Depends: firmware (>= 16.0), mobilesubstrate

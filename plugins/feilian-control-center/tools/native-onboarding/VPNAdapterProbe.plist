@@ -1,0 +1,1 @@
+{ Filter = { Bundles = ( "co.hotspot.vpn.security", "com.bestapp.gofast.vpn", "com.zenith.jump" ); }; }

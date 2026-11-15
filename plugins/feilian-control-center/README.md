@@ -1,4 +1,127 @@
-# 飞连 VPN 控制中心
+# VPN 控制中心
+
+## 当前发布：1.3.1（无独立认证后台，保留已知限制）
+
+用户选择本机开放调用；当前构建不再安装认证broker、许可发布脚本或后台
+启动任务。固定App私有通信和开关范围保持；新连接的请求编号独立，防止
+其它本机调用者的大编号影响后续控制中心请求。87项通信回归通过。
+GOFast超时、Jump/GOFast Beta及真实GUI未验证继续保留，不能称全部验收通过。
+发布说明、验证边界和安装包哈希见 `docs/RELEASE_1_3_1.md`。
+
+## 已安装实测预览：1.3.1~localopen1
+
+取消独立认证后台和SpringBoard来源认证，保留App内本机开关与请求边界。
+用户随后允许注销，已安装12 mini并核对实际新版加载。Easy/飞连/Hotspot/Jump
+后台开关与联网、三目标全部六方向切换通过；GOFast超时，真实GUI受权限阻塞。
+保持预览状态，不宣称全部验收通过。见 `docs/LOCAL_OPEN_PREVIEW.md`。
+
+## 历史发布：1.3.0（RootHide，保留已知限制）
+
+用户确认飞连切换超时暂不处理，按当前修复源码发布并安装，不追加切换
+优化或网络测试。Easy/飞连/Hotspot 独立后台开关已在12 mini通过；同版
+候选的Easy→飞连切换超时仍保留，其他方向本轮未完整验证。Jump/GOFast
+仍为Beta。发布版本号不代表全部路径稳定100%，不代表14PM功能已验证。
+此次仅改版本元数据，运行逻辑与bfirst7-reviewfix1相同。
+发布、安装及提交范围见 `docs/RELEASE_1_3_0.md`。
+
+## bfirst7-reviewfix1 修复与实测记录
+
+已修 Easy 请求归属、空 Session 回读、root 许可发布父目录竞态与清理、
+陈旧 socket 检测及测试成功判据；本地针对性验证和候选构建通过。
+本候选已安装；握手双线程close10/10、opening取消10/10、断言到期2/2、
+三目标独立开关联网通过，Easy原生连接中取消样本通过。但六方向回归
+第一项Easy→飞连超时，后续未执行，不能发布稳定版，iCloud未覆盖。
+最新实测及清理见 `docs/REVIEWFIX_LIVE_20261115.md`；上一阶段见
+`docs/REVIEW_FIX_STATUS_20261115.md`。以下为历史版本记录。
+
+## bfirst6-coldready1 历史记录
+
+在bfirst5同名类隔离修复上，补充飞连冷启动通信端口就绪重试：准备阶段
+在8秒尝试窗口内就绪即继续，非固定等待；正常已就绪操作不额外延迟。
+首次握手本身仍受原有超时/取消约束，8秒不是整个连接操作的硬超时。
+bfirst6飞连初连和飞连→Easy补测均已连接且HTTPS通过；同版本完整六方向
+6/6通过，范围8.989–13.995秒、中位11.492秒，不宣称实测提速或稳定100%。
+最终收尾及边界见 `docs/COLDREADY_RETEST_20261115.md`。
+本版本已安装，前三个独立后台开/关及网络也通过；最终并发close回归出现
+重复启动记录，未完成10轮，原因未定，已停止并移除临时测试。
+Jump/GOFast仍Beta，实际触摸/展开视觉未验收，iCloud发布门禁仍未通过。
+
+## bfirst5-classguard1 历史记录
+
+已修复临时测试宿主误取系统同名 VPNController 的问题：正式类命名为
+AYAVPNController，回归工具从已安装模块取对象并核对所属二进制和方法签名。
+真机取消握手10/10、获权客户端双线程close 10/10通过；20次相同状态回读
+没有重复界面回调。普通切换无新增等待、无缓存、无旧A停止命令。
+最新网络回归有一次飞连HTTPS超时，不能宣称六方向全通过或稳定100%；
+圆形进度位置真机布局回读居中，实际触摸及展开视觉未验收。
+本版本已安装，iCloud未覆盖。最新证据与未解决边界见
+`docs/CLASSGUARD_RETEST_20261115.md`。以下版本结论均为历史记录。
+
+## bfirst3 历史记录
+
+切换只后台准备/认证 B 后立即请求连接 B，不向 A 发停止命令，没有
+旧 8 秒等待阶段。Easy/飞连/Hotspot 最后一轮六方向切换及网络检查通过，
+耗时约 8–14 秒；本轮另一追加回归中飞连有一次失败，不能宣称稳定率100%。
+Jump/GOFast 标为 Beta，未纳入主要六方向验收；真实触摸仍未验证。
+圆形进度与居中修复保留，已安装 bfirst3，iCloud 未覆盖。
+当前设计及实测见 `docs/BFIRST_STATUS.md`；以下内容为历史记录。
+
+silent5 在测试中发生新的空对象崩溃，本轮已移除不兼容的动态断言子类，
+恢复系统断言并增加创建失败关闭、主队列单次释放、15 秒主动到期及
+客户端生命周期校验。手机已安装 silent6-safety1；10 轮双线程 close 和
+2 轮主动到期回归通过，本轮无新增 SpringBoard 崩溃。
+15 秒安全预算可能使较慢 VPN 请求失败，本轮没有重测五 App 的网络闭环，
+不得把历史成功直接写成当前版本支持全部五目标。iCloud 未覆盖。
+最新记录见 `docs/SAFETY_RECOVERY_20261115.md`。下文仅为历史结果。
+
+最新手机复测发现 silent1 连续切换时发生 SpringBoard 崩溃，堆栈位于
+BKSProcessAssertion.invalidate。用户退出安全模式后，silent2 已在真正
+SpringBoard 完整重测：Easy、飞连、Hotspot 主路径及连续切换通过，
+10 轮获权客户端双线程 close 回归完成，无新增 SpringBoard 崩溃。
+Jump/GOFast 后台仍失败、真实触摸未验收，iCloud 本轮未覆盖。
+最新详情见 `docs/SILENT2_RETEST_20261115.md`；首次崩溃见
+`docs/LIVE_ACCEPTANCE_20261115.md`。下文 silent1 通过项是历史局部结果。
+
+已实现默认 Easy VPN、原生长按选择面板、选择记忆、真实连接状态、
+确认后顺序断开/连接，以及 Easy VPN / 飞连 / Hotspot / GOFast / Jump 的连接辅助。
+包与模块标识保持不变；候选包在 `packages/`，完整源码在本项目。
+
+普通点按只后台唤醒，不跳转 App，也没有自动前台兜底；用户主动点
+“打开 App”才切前台。长按选择另一 VPN 直接切换，不再弹第二次确认。
+旧连接原生停止最多等待 8 秒；未完成也尝试新目标，由系统仲裁，以回读为准。
+
+当前 **不能作为五 VPN 全功能通过的正式版本发布**。受限本机认证服务解决了
+App 无权反查 SpringBoard 的问题；正常启动 App 后完成 nonce/audit 许可握手。
+本轮在真正 SpringBoard 验证 Easy、飞连、Hotspot 的后台连接及相互直接切换。
+Jump/GOFast 本轮后台准备未通过，失败不自动跳转，不能套用 candidate4
+前台唤醒的成功记录；真实触摸/长按视觉验收仍未完成。
+本轮目标手机保留安装 silent1；一次性 SpringBoard 自动测试组件收尾移除。
+旧 1.2.0 安装包及设备端模块/控制中心排列备份保留可供回滚。
+
+最新交互修复与实测见 `docs/SILENT_SWITCH_STATUS.md`；
+认证实现与历史实测见 `docs/CANDIDATE4_STATUS.md`；旧失败根因见 `docs/IPC_ROOTCAUSE.md`；
+安装历史见 `docs/CANDIDATE2_STATUS.md`；
+旧轮细节见 `docs/CANDIDATE1_STATUS.md`；
+交互设计见 `docs/MULTI_VPN_DESIGN.md`。下文为 **1.2.0 历史使用与验证记录**，
+不代表 1.3.0 候选同样通过。不能把临时 EasyVPNHelper 的连接成功替代
+候选新 IPC 和任务取消机制的验收。
+
+构建候选：
+
+```sh
+bash plugins/feilian-control-center/scripts/build-package.sh
+```
+
+默认仅按当前 RootHide 包装约定生成 iphoneos-arm64e；不承诺普通 rootless。
+正式辅助仅分别匹配 com.qdtiktok.easyvpn / com.volcengine.corplink。
+不修改 App List，目标注入需由用户通过官方管理器启用。
+
+正式辅助通过 App 临时目录的 `vcc1.sock` 接收内核 peer audit token / PID
+校验后的 SpringBoard 请求；不使用公开 Darwin 通知执行连接。
+诊断 stage 通知只记录整数、不承载命令、不代表来源认证。
+IPC 路径由运行时 App 注册信息获取，不硬编码设备容器或局域网地址。
+
+## 1.2.0 历史记录
 
 > 2026-11-08 仓库整理说明：原始截图、设备导出、历史测试包及详细日志已按用户要求清理。下文旧 `research/`、`evidence/` 路径仅描述当时记录，不代表文件仍在；保留正式源码、资源和必要交付包。此次整理未重新执行功能验收。
 
