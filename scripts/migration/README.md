@@ -24,6 +24,15 @@ without rereading the live target identity and the corresponding report files.
 
 ## Files
 
+- `../../docs/native-app-store-download.md`: current authorized native App Store
+  download procedure, including screenshot-gated standalone input when WDA is
+  unavailable. Submit requests without waiting only when that is the requested
+  scope; request evidence is separate from final installation evidence.
+- `native-app-store-control.py`: parameterized, human-reviewed screenshot input
+  controller. Requires an existing authorized SSH connection, exact free Apple
+  listing, foreground/lock checks and explicit review; logs attempts before
+  sending input and refuses automatic repeat taps. Dependencies are declared in
+  `native-app-store-requirements.txt`.
 - `install-trollstore-manifest.py`: explicit IPA manifest with hash, bundle ID,
   registration and version readback. It excludes jailbreak/system applications.
   TrollStore status 184 is an installed-app warning for encrypted secondary
