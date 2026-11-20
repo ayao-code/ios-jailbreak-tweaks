@@ -30,9 +30,15 @@ xcrun clang -target arm64-apple-ios16.0 \
 ldid -Sscripts/tools/tweak-preferences/entitlements.plist /tmp/embedded-plugin-prefs
 ```
 
+Current restoration keeps the source read-only and overwrites reviewed target
+settings without mandatory dual or target-before backups. Do not upload or run
+new helpers on the source. This historical script still creates and verifies
+backups internally; its implementation is unchanged, so it is not a backup-free
+replay entry point. It only merges reviewed keys, not entire files.
+
 `restore-embedded-plugin-settings.py` requires the verified current SSH socket
 and helper. It checks installed plugins, exact container, native/disk equality,
-dual timestamped byte backups, existing format/metadata and concurrent edits.
+script-internal timestamped byte backups, existing format/metadata and concurrent edits.
 It applies only reviewed saved keys, waits for disk persistence, checks all
 non-target values, rereads the native consumer, and preserves all RootHide
 policy bytes. No App is launched, terminated, hooked, or debugged. The helper

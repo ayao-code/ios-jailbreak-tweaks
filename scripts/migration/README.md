@@ -1,9 +1,27 @@
 # Scoped 14PM to 12 mini migration tools
 
+The source-read-only -> TrollStore -> install jailbreak app via TrollStore
+-> Jailbreak -> isolation -> target-overwrite -> verification lifecycle starts in
+[`docs/jailbreak-and-restore-guide.md`](../../docs/jailbreak-and-restore-guide.md).
+These scripts cover selected restoration steps, not the whole lifecycle.
+
+For the later November 18 restoration and separately authorized November 19
+Ali/Ant blacklist update, see
+[`docs/iphone-restore-step-by-step.md`](../../docs/iphone-restore-step-by-step.md).
+It documents the execution order, current tool contracts, timestamped evidence,
+backups, rollback rules and incomplete requirements. Historical scripts below
+are not one-click replay jobs; resolve live identity and consumer paths first.
+
 Repository cleanup (2026-11-08): historical backup payloads, reports and device
 snapshots under `backups/` have been removed at the user's request. These scripts
 remain as source, not ready-to-replay migration jobs. Re-inventory both devices,
-provide fresh reviewed inputs and create new dual backups before any execution.
+provide fresh reviewed inputs. Current config restoration keeps the source
+read-only and overwrites the reviewed target settings; neither dual backups nor
+target-before backups are mandatory. Do not upload helpers, install software,
+write preferences, notify consumers, or reload processes on the source.
+Without a saved target-before state, do not promise rollback to its old settings.
+Historical scripts may still create backups internally; this documentation
+change does not alter their implementation or make them ready-to-replay jobs.
 The paths mentioned below describe the original migration, not retained assets.
 
 These tools support the explicitly authorized November 7 migration. They are
@@ -19,8 +37,11 @@ without rereading the live target identity and the corresponding report files.
 - No Ali/Ant, banking/payment/securities, or JD application injection.
 - Credentials are supplied interactively or through the existing authorized
   SSH control connection; no credentials belong in scripts or reports.
-- Every configuration mutation needs timestamped local and device backups,
-  a current consumer/path check, and persisted semantic readback.
+- Configuration restoration needs a reviewed overwrite scope, a current
+  consumer/path check, compatible format/metadata, and persisted semantic readback.
+  Compatible settings-only files may be replaced as a whole; credentials,
+  account/container data, runtime state, and sensitive-app isolation policies
+  are not copied wholesale. Dual or target-before backups are not required.
 
 ## Files
 
@@ -47,22 +68,23 @@ without rereading the live target identity and the corresponding report files.
   and excludes transient audio commands/snapshots. Scope is this migration.
 - `controlcenter-settings.m`: uses the live ControlCenterServices serializer
   through a process-local subclass targeting the installed CCSupport config.
-  `inspect` and `read` are read-only. `apply` requires the caller's verified
-  dual backup and an explicit desired plist. It does not hook system processes.
+  `inspect` and `read` are read-only. `apply` requires an explicit reviewed
+  desired plist, not a mandatory backup. It does not hook system processes.
 - `crane-root-settings.m`: uses Crane's own settings writer for two global UI
   options only. It rejects per-App/container/account configuration; container
   identifiers and system-account separation cannot be restored by copying
   missing container data or activation material.
 - `reconcile-desktop.py`: recomputes no app inventory itself; it applies the
   previously reviewed current layout candidate to IconOrder's native API,
-  preserving other keys, dual backups, original format and metadata. A desktop
+  preserving other keys, script-internal historical backups, original format
+  and metadata. These backups are not a requirement for new restoration. A desktop
   reload and current runtime IconState readback are separate required steps.
 
 IconOrder XML may contain control characters in source folder names that a
 strict external XML parser rejects. Its native Foundation reader still accepts
 that saved file. `tweak-prefs iconorder-disk-read` checks native disk semantics;
 `iconorder-xml` uses IconOrder's own `writeToFile:atomically:` serialization after
-the caller has made verified backups. Never "repair" this by stripping folder
+the caller has reviewed the target overwrite scope. Never "repair" this by stripping folder
 names or silently converting the file format.
 
 The source desktop was reread and contains no Crane icon. Do not invent a

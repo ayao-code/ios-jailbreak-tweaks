@@ -68,6 +68,13 @@
 
 清理只移除缓存、过期包和一次性资料，保留源码、资源、当前包及必要构建输入。PhotosRecentsSort 的 0.2.6 包仍是当前打包输入，不能删除。
 
+## 操作文档
+
+- `docs/jailbreak-and-restore-guide.md`：完整总流程，源机只读 → 巨魔安装越狱 App
+  → 实际越狱 → RootHide 隔离 → 恢复 App／插件／设置／布局 → 验证和回滚。
+- `docs/README.md`：总流程、恢复详细步骤及各专项历史记录的阅读索引。
+- `docs/trollstore-usb-install.md`：USB 安装 TrollStore 的决策链、命令模板、验证边界和高敏 App 安全边界。
+
 ## 仓库结构
 
 ```text
@@ -122,7 +129,7 @@ plugins/
 - 监听、定时器、线程及其他资源必须具有明确生命周期，并在不再需要时及时停止或释放。
 - 如果存在 `Preferences/`，其源码、配置、资源和展示内容必须与当前最新版插件保持一致。
 - 无法完成实机稳定性、CPU、内存和续航验证时，必须明确记录未验证项和潜在风险。
-- 直接修改设备配置时必须遵守 `DEVICE_CONFIG_SAFETY.md`：保留原格式、双重备份、语义比较、暂存后原子替换、设备回读及崩溃检查；RootHide 配置不得转换为 binary plist。
+- 设备配置恢复遵守 `DEVICE_CONFIG_SAFETY.md`：源机只读、目标按清单覆盖，不要求双端备份或保存目标旧配置；保留格式、权限、语义比较、原子替换和回读。RootHide 配置不得转换为 binary plist，高敏隔离策略不得随普通设置照搬。
 
 ## 新增插件规范
 
